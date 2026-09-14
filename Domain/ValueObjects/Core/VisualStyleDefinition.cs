@@ -39,8 +39,8 @@ public sealed record VisualStyleDefinition(
             ),
             VisualStyle.Realistic => new VisualStyleDefinition(
                 Style: VisualStyle.Realistic,
-                PositiveTokens: "photorealistic, realistic, natural skin texture, lifelike details, authentic lighting, photography",
-                NegativeTokens: "anime, cartoon, comic, illustration, drawing, 3d render, stylized, doll"
+                PositiveTokens: "photorealistic, realistic, natural skin texture, raw photo, visible skin pores, authentic natural lighting, 50mm photography",
+                NegativeTokens: "anime, cartoon, comic, illustration, drawing, 3d render, stylized, doll, plastic skin, mannequin, silicone, porcelain, airbrushed, beauty filter, glossy, fake"
             ),
             VisualStyle.SemiRealistic => new VisualStyleDefinition(
                 Style: VisualStyle.SemiRealistic,

@@ -7,6 +7,7 @@ using Domain.Enums;
 using Domain.ValueObjects;
 using Infrastructure.ImageGeneration;
 using Infrastructure.ImageGeneration.ComfyUI;
+using Infrastructure.LLM.Prompts;
 using Infrastructure.Services;
 using Microsoft.Extensions.Configuration;
 using Xunit;
@@ -21,8 +22,8 @@ public sealed class StyleModelSelectionTests
             {
                 ["AiProviders:ImageGeneration:StyleModels:Anime"] = "meinamix",
                 ["AiProviders:ImageGeneration:StyleModels:Manhwa"] = "meinamix",
-                ["AiProviders:ImageGeneration:StyleModels:Realistic"] = "epicrealism",
-                ["AiProviders:ImageGeneration:StyleModels:Cinematic"] = "epicrealism"
+                ["AiProviders:ImageGeneration:StyleModels:Realistic"] = "majicmixrealistic",
+                ["AiProviders:ImageGeneration:StyleModels:Cinematic"] = "majicmixrealistic"
             })
             .Build();
 
@@ -59,7 +60,7 @@ public sealed class StyleModelSelectionTests
     }
 
     [Fact]
-    public void Test2_RealisticCharacter_ResolvesToEpicrealism()
+    public void Test2_RealisticCharacter_ResolvesToMajicMixRealistic()
     {
         var config = CreateDefaultStyleConfiguration();
         var registry = new ConfigurationModelRegistry();
@@ -68,11 +69,11 @@ public sealed class StyleModelSelectionTests
 
         var profile = provider.ResolveProfile(character);
 
-        Assert.Equal("epicrealism", profile.Model);
+        Assert.Equal("majicmixrealistic", profile.Model);
     }
 
     [Fact]
-    public void Test3_CinematicCharacter_ResolvesToEpicrealism()
+    public void Test3_CinematicCharacter_ResolvesToMajicMixRealistic()
     {
         var config = CreateDefaultStyleConfiguration();
         var registry = new ConfigurationModelRegistry();
@@ -81,7 +82,7 @@ public sealed class StyleModelSelectionTests
 
         var profile = provider.ResolveProfile(character);
 
-        Assert.Equal("epicrealism", profile.Model);
+        Assert.Equal("majicmixrealistic", profile.Model);
     }
 
     [Fact]
@@ -166,10 +167,10 @@ public sealed class StyleModelSelectionTests
         var animeInputs = (Dictionary<string, object>)animeNode4["inputs"];
         Assert.Equal("meinamix_meinaV11.safetensors", animeInputs["ckpt_name"]);
 
-        // 2. Realistic character path
+        // 2. Realistic character path (defaults to majicmixrealistic in PR78)
         var realisticChar = CreateCharacterWithStyle(VisualStyle.Realistic);
         var realisticProfile = provider.ResolveProfile(realisticChar);
-        Assert.Equal("epicrealism", realisticProfile.Model);
+        Assert.Equal("majicmixrealistic", realisticProfile.Model);
 
         var realisticSnapshot = new VisualSnapshot(
             TurnId: Guid.NewGuid(),
@@ -183,16 +184,51 @@ public sealed class StyleModelSelectionTests
         );
 
         var realisticRequest = ImageGenerationRequest.FromSnapshot(realisticSnapshot, "1man sitting on park bench photorealistic");
-        Assert.Equal("epicrealism", realisticRequest.Model);
+        Assert.Equal("majicmixrealistic", realisticRequest.Model);
 
         // Verify capability policy validation passes
         Assert.True(policy.IsSupported(realisticRequest.ResolveEffectiveCapability()));
 
-        // Verify ComfyUI node graph populates the realistic checkpoint artifact
+        // Verify ComfyUI node graph populates the majicmixrealistic checkpoint artifact
         var realisticGraph = builder.BuildWorkflow(realisticRequest, "face.png");
         var realisticNode4 = (Dictionary<string, object>)realisticGraph["4"];
         var realisticInputs = (Dictionary<string, object>)realisticNode4["inputs"];
-        Assert.Equal("epicrealism_naturalSinRC1VAE.safetensors", realisticInputs["ckpt_name"]);
+        Assert.Equal("majicmixRealistic_v7.safetensors", realisticInputs["ckpt_name"]);
+    }
+
+    [Fact]
+    public void Test7b_EpicRealism_RemainsBackwardCompatible_WhenExplicitlyConfigured()
+    {
+        var config = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["AiProviders:ImageGeneration:StyleModels:Realistic"] = "epicrealism"
+            })
+            .Build();
+        var registry = new ConfigurationModelRegistry();
+        var provider = new VisualGenerationProfileProvider(configuration: config, modelRegistry: registry);
+        var builder = new VisualIdentityWorkflowV1Builder(registry);
+
+        var character = CreateCharacterWithStyle(VisualStyle.Realistic);
+        var profile = provider.ResolveProfile(character);
+        Assert.Equal("epicrealism", profile.Model);
+
+        var snapshot = new VisualSnapshot(
+            TurnId: Guid.NewGuid(),
+            SessionId: Guid.NewGuid(),
+            CharacterId: character.Id,
+            SceneRevision: 1,
+            VisualIdentity: character.VisualIdentity,
+            SceneState: new SessionSceneState("Park", "Bench"),
+            TransientState: null,
+            GenerationProfile: profile
+        );
+
+        var request = ImageGenerationRequest.FromSnapshot(snapshot, "1man sitting on park bench");
+        var graph = builder.BuildWorkflow(request, "face.png");
+        var node4 = (Dictionary<string, object>)graph["4"];
+        var inputs = (Dictionary<string, object>)node4["inputs"];
+        Assert.Equal("epicrealism_naturalSinRC1VAE.safetensors", inputs["ckpt_name"]);
     }
 
     [Fact]
@@ -270,5 +306,121 @@ public sealed class StyleModelSelectionTests
 
         var profile = provider.ResolveProfile(character);
         Assert.Equal("global-fallback-model", profile.Model);
+    }
+
+    [Fact]
+    public async Task Test12_GenerateAvatar_DelegatesModelResolutionDownstream()
+    {
+        var capturedRequests = new List<ImageGenerationRequest>();
+        var capturingImageService = new CapturingImageService(capturedRequests);
+        var promptCompiler = new Infrastructure.LLM.Prompts.PromptCompiler();
+        var geminiConfig = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?> { ["AI:ApiKey"] = "dummy" })
+            .Build();
+        var gemini = new Infrastructure.LLM.Core.GeminiApiClient(
+            new HttpClient(),
+            geminiConfig,
+            Microsoft.Extensions.Logging.Abstractions.NullLogger<Infrastructure.LLM.Core.GeminiApiClient>.Instance);
+
+        var llm = new Infrastructure.LLM.LLMService(
+            geminiClient: gemini,
+            imageService: capturingImageService,
+            promptCompiler: promptCompiler
+        );
+
+        var request = new GenerateAvatarRequest(
+            name: "Lâm Uyển Nhi",
+            title: "Họa Sĩ",
+            personalityPrompt: "Trầm tính",
+            visualIdentity: new CharacterVisualIdentity(
+                Style: "Realistic",
+                VisualStyle: VisualStyle.Realistic
+            )
+        );
+
+        await llm.GenerateAvatarAsync(request);
+
+        Assert.NotEmpty(capturedRequests);
+        // LLMService does not pollute requests with hardcoded model selection; delegates downstream
+        Assert.All(capturedRequests, req => Assert.Null(req.Model));
+    }
+
+    [Fact]
+    public void Test13_MajicMixRealistic_RegisteredInBaseline_AndResolvesArtifact()
+    {
+        var registry = new ConfigurationModelRegistry();
+
+        var modelDef = registry.FindById("majicmixrealistic");
+        Assert.NotNull(modelDef);
+        Assert.Equal(ModelFamily.Sd15, modelDef.Family);
+        Assert.Equal("majicmixRealistic_v7.safetensors", modelDef.ArtifactName);
+
+        // Alias resolution via FindById
+        var byArtifact = registry.FindById("majicmixRealistic_v7.safetensors");
+        Assert.NotNull(byArtifact);
+        Assert.Equal("majicmixrealistic", byArtifact.Id);
+
+        var byCanonicalAlias = registry.FindById("majicmixrealistic.safetensors");
+        Assert.NotNull(byCanonicalAlias);
+        Assert.Equal("majicmixrealistic", byCanonicalAlias.Id);
+    }
+
+    [Fact]
+    public void Test14_MajicMixRealistic_PropagatesThroughProfileProviderToComfyUIWorkflow()
+    {
+        var config = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["AiProviders:ImageGeneration:StyleModels:Realistic"] = "majicmixrealistic",
+                ["AiProviders:ImageGeneration:StyleModels:Cinematic"] = "majicmixrealistic"
+            })
+            .Build();
+        var registry = new ConfigurationModelRegistry();
+        var provider = new VisualGenerationProfileProvider(configuration: config, modelRegistry: registry);
+        var builder = new VisualIdentityWorkflowV1Builder(registry);
+
+        var character = CreateCharacterWithStyle(VisualStyle.Realistic);
+        var profile = provider.ResolveProfile(character);
+        Assert.Equal("majicmixrealistic", profile.Model);
+
+        var snapshot = new VisualSnapshot(
+            TurnId: Guid.NewGuid(),
+            SessionId: Guid.NewGuid(),
+            CharacterId: character.Id,
+            SceneRevision: 1,
+            VisualIdentity: character.VisualIdentity,
+            SceneState: new SessionSceneState("Garden", "Bench"),
+            TransientState: null,
+            GenerationProfile: profile
+        );
+
+        var request = ImageGenerationRequest.FromSnapshot(snapshot, "1girl sitting in sunlit garden");
+        Assert.Equal("majicmixrealistic", request.Model);
+
+        var graph = builder.BuildWorkflow(request, "face.png");
+        var node4 = (Dictionary<string, object>)graph["4"];
+        var inputs = (Dictionary<string, object>)node4["inputs"];
+        Assert.Equal("majicmixRealistic_v7.safetensors", inputs["ckpt_name"]);
+    }
+
+    private sealed class CapturingImageService : IImageGenerationService
+    {
+        private readonly List<ImageGenerationRequest> _captured;
+        public CapturingImageService(List<ImageGenerationRequest> captured) => _captured = captured;
+
+        public Task<string> GenerateImageAsync(string prompt, int width = 512, int height = 512, CancellationToken ct = default)
+            => Task.FromResult("https://storage.local/dummy.png");
+
+        public Task<string> GenerateImageAsync(ImageGenerationRequest request, CancellationToken ct = default)
+        {
+            _captured.Add(request);
+            return Task.FromResult("https://storage.local/dummy.png");
+        }
+
+        public Task<ImageGenerationResult> GenerateImageWithResultAsync(ImageGenerationRequest request, CancellationToken ct = default)
+        {
+            _captured.Add(request);
+            return Task.FromResult(new ImageGenerationResult("https://storage.local/dummy.png", "ComfyUI", "job-1", 100, 12345));
+        }
     }
 }
