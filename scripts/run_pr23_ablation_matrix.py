@@ -17,7 +17,7 @@ from transformers import CLIPVisionModelWithProjection, CLIPImageProcessor, CLIP
 COMFY_URL = "http://127.0.0.1:8188"
 COMFY_INPUT_DIR = r"D:\ComfyUI_windows_portable\ComfyUI\input"
 COMFY_OUTPUT_DIR = r"D:\ComfyUI_windows_portable\ComfyUI\output"
-EVAL_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "eval_artifacts", "pr23"))
+EVAL_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "eval_artifacts", "pr23"))
 os.makedirs(EVAL_DIR, exist_ok=True)
 
 # 1. Load CLIP Evaluator
@@ -129,7 +129,7 @@ def create_contact_sheet(image_paths, titles, output_path, avatar_path=None):
     sheet.save(output_path)
 
 # Load Authoritative C# Requests
-with open(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "eval_artifacts", "v23", "authoritative_compiled_requests.json")), "r", encoding="utf-8") as f:
+with open(os.path.abspath(os.path.join(os.path.dirname(__file__), "eval_artifacts", "v23", "authoritative_compiled_requests.json")), "r", encoding="utf-8") as f:
     all_requests = json.load(f)
 
 # Focus persona scenarios: Valerius (P0 subject), Elysia (control), Lyra (control)

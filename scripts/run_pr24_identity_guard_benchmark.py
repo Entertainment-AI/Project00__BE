@@ -30,9 +30,9 @@ COMFY_HOST = "127.0.0.1:8188"
 COMFY_OUTPUT_DIR = r"D:\ComfyUI_windows_portable\ComfyUI\output"
 INPUT_DIR = r"D:\ComfyUI_windows_portable\ComfyUI\input"
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-REQUESTS_FILE = os.path.join(BASE_DIR, "eval_artifacts", "v23", "authoritative_compiled_requests.json")
+REQUESTS_FILE = os.path.join(BASE_DIR, "scripts", "eval_artifacts", "v23", "authoritative_compiled_requests.json")
 TEMPLATE_PATH = os.path.join(BASE_DIR, "scripts", "production_workflow_v2_template.json")
-ARTIFACTS_DIR = os.path.join(BASE_DIR, "eval_artifacts", "pr24")
+ARTIFACTS_DIR = os.path.join(BASE_DIR, "scripts", "eval_artifacts", "pr24")
 os.makedirs(ARTIFACTS_DIR, exist_ok=True)
 
 # -------------------------------------------------------------

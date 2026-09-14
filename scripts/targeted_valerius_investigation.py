@@ -17,7 +17,7 @@ from transformers import CLIPVisionModelWithProjection, CLIPImageProcessor, CLIP
 COMFY_URL = "http://127.0.0.1:8188"
 COMFY_INPUT_DIR = r"D:\ComfyUI_windows_portable\ComfyUI\input"
 COMFY_OUTPUT_DIR = r"D:\ComfyUI_windows_portable\ComfyUI\output"
-EVAL_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "eval_artifacts", "v23", "valerius_ablation"))
+EVAL_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "eval_artifacts", "v23", "valerius_ablation"))
 os.makedirs(EVAL_DIR, exist_ok=True)
 
 # Load CLIP Evaluator
@@ -104,7 +104,7 @@ def build_workflow(template, avatar_filename, prev_scene_filename, prompt_text, 
 template = load_v2_workflow_template()
 
 # Read the C# compiled requests for Valerius
-with open(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "eval_artifacts", "v23", "authoritative_compiled_requests.json")), "r", encoding="utf-8") as f:
+with open(os.path.abspath(os.path.join(os.path.dirname(__file__), "eval_artifacts", "v23", "authoritative_compiled_requests.json")), "r", encoding="utf-8") as f:
     all_reqs = json.load(f)
 valerius_reqs = [r for r in all_reqs if r["CharacterId"] == "character_03_valerius"]
 

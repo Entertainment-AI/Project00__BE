@@ -19,7 +19,7 @@ from transformers import CLIPVisionModelWithProjection, CLIPImageProcessor, CLIP
 COMFY_URL = os.environ.get("COMFY_URL", "http://127.0.0.1:8188")
 COMFY_INPUT_DIR = os.environ.get("COMFY_INPUT_DIR", r"D:\ComfyUI_windows_portable\ComfyUI\input")
 COMFY_OUTPUT_DIR = os.environ.get("COMFY_OUTPUT_DIR", r"D:\ComfyUI_windows_portable\ComfyUI\output")
-EVAL_ARTIFACTS_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "eval_artifacts", "v23"))
+EVAL_ARTIFACTS_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "eval_artifacts", "v23"))
 AUTHORITATIVE_REQUESTS_JSON = os.path.join(EVAL_ARTIFACTS_DIR, "authoritative_compiled_requests.json")
 
 CHARACTER_ATTRIBUTES = {
