@@ -37,11 +37,14 @@ public sealed class WorkflowCapabilityPolicy : IImageGenerationCapabilityPolicy
     /// Creates a default capability policy populated with the built-in standard workflow builders.
     /// Provides a single authoritative default for test fixtures and composition fallbacks.
     /// </summary>
-    public static WorkflowCapabilityPolicy CreateDefault(IModelRegistry? modelRegistry = null) =>
-        new(new IComfyUIWorkflowBuilder[]
+    public static WorkflowCapabilityPolicy CreateDefault(IModelRegistry? modelRegistry = null)
+    {
+        var registry = modelRegistry ?? new Services.ConfigurationModelRegistry();
+        return new(new IComfyUIWorkflowBuilder[]
         {
-            new VisualIdentityWorkflowV1Builder(modelRegistry),
-            new VisualContinuityWorkflowV2Builder(modelRegistry),
-            new TextToImageWorkflowV1Builder(modelRegistry)
+            new VisualIdentityWorkflowV1Builder(registry),
+            new VisualContinuityWorkflowV2Builder(registry),
+            new TextToImageWorkflowV1Builder(registry)
         });
+    }
 }

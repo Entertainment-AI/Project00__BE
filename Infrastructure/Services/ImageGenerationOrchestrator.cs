@@ -39,7 +39,6 @@ public sealed class ImageGenerationOrchestrator : IImageGenerationOrchestrator
     private readonly GenerationRetryBudget _retryBudget;
     private readonly IImageGenerationCapabilityPolicy _capabilityPolicy;
 
-    [Microsoft.Extensions.DependencyInjection.ActivatorUtilitiesConstructor]
     public ImageGenerationOrchestrator(
         CoreDbContext dbContext,
         IVisualPromptCompiler visualCompiler,
@@ -68,74 +67,6 @@ public sealed class ImageGenerationOrchestrator : IImageGenerationOrchestrator
         _metrics = metrics ?? new Infrastructure.Telemetry.GenerationMetrics(NullLogger<Infrastructure.Telemetry.GenerationMetrics>.Instance);
         _fingerprintService = fingerprintService ?? new GenerationFingerprintService();
         _retryBudget = retryBudget ?? GenerationRetryBudget.Default;
-    }
-
-    /// <summary>
-    /// Backward-compatible constructor for callers passing IImageGenerationExecutor directly.
-    /// </summary>
-    public ImageGenerationOrchestrator(
-        CoreDbContext dbContext,
-        IVisualPromptCompiler visualCompiler,
-        IImageGenerationExecutor executor,
-        ILogger<ImageGenerationOrchestrator> logger,
-        IDateTimeProvider dateTimeProvider,
-        IIdentityQualityEvaluator qualityEvaluator,
-        IdentityQualityGuardPolicy qualityGuardPolicy,
-        IPredecessorLineageResolver lineageResolver,
-        IArtifactAcceptanceService acceptanceService,
-        IImageGenerationCapabilityPolicy capabilityPolicy,
-        IGenerationMetrics? metrics = null,
-        IGenerationFingerprintService? fingerprintService = null,
-        GenerationRetryBudget? retryBudget = null)
-        : this(
-            dbContext,
-            visualCompiler,
-            new ImageGenerationExecutorSelector(executor),
-            logger,
-            dateTimeProvider,
-            qualityEvaluator,
-            qualityGuardPolicy,
-            lineageResolver,
-            acceptanceService,
-            capabilityPolicy,
-            metrics,
-            fingerprintService,
-            retryBudget)
-    {
-    }
-
-    /// <summary>
-    /// Backward-compatible constructor for callers passing IImageGenerationService with named parameter 'imageService'.
-    /// </summary>
-    public ImageGenerationOrchestrator(
-        CoreDbContext dbContext,
-        IVisualPromptCompiler visualCompiler,
-        IImageGenerationService imageService,
-        ILogger<ImageGenerationOrchestrator> logger,
-        IDateTimeProvider dateTimeProvider,
-        IIdentityQualityEvaluator qualityEvaluator,
-        IdentityQualityGuardPolicy qualityGuardPolicy,
-        IPredecessorLineageResolver lineageResolver,
-        IArtifactAcceptanceService acceptanceService,
-        IImageGenerationCapabilityPolicy capabilityPolicy,
-        IGenerationMetrics? metrics = null,
-        IGenerationFingerprintService? fingerprintService = null,
-        GenerationRetryBudget? retryBudget = null)
-        : this(
-            dbContext,
-            visualCompiler,
-            (IImageGenerationExecutor)imageService,
-            logger,
-            dateTimeProvider,
-            qualityEvaluator,
-            qualityGuardPolicy,
-            lineageResolver,
-            acceptanceService,
-            capabilityPolicy,
-            metrics,
-            fingerprintService,
-            retryBudget)
-    {
     }
 
     public async Task<JobExecutionResult> OrchestrateSceneImageGenerationAsync(

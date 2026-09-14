@@ -310,7 +310,7 @@ public class VisualContinuity8TurnBenchmarkTests
         Assert.Contains("\"weight\":0.35", newlyResolvedProfile.ParametersJson);
 
         // 4. Replay execution with builder must use frozen snapshot ParametersJson
-        var builder = new global::Infrastructure.ImageGeneration.ComfyUI.VisualContinuityWorkflowV2Builder();
+        var builder = new global::Infrastructure.ImageGeneration.ComfyUI.VisualContinuityWorkflowV2Builder(new ConfigurationModelRegistry());
         var request = ImageGenerationRequest.FromSnapshot(snapshot, "https://cloud.storage/lyra_canonical.png");
         var graph = builder.BuildWorkflow(request, "lyra_canonical.png", "scene_rev1.png");
 

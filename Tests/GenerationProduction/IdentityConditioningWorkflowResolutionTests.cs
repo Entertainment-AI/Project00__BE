@@ -107,13 +107,7 @@ public sealed class IdentityConditioningWorkflowResolutionTests
 
     private static IImageGenerationCapabilityPolicy CreateStandardPolicy()
     {
-        var builders = new IComfyUIWorkflowBuilder[]
-        {
-            new VisualIdentityWorkflowV1Builder(),
-            new VisualContinuityWorkflowV2Builder(),
-            new TextToImageWorkflowV1Builder()
-        };
-        return new WorkflowCapabilityPolicy(builders);
+        return WorkflowCapabilityPolicy.CreateDefault();
     }
 
     // =========================================================================
@@ -590,7 +584,7 @@ public sealed class IdentityConditioningWorkflowResolutionTests
         var policy = CreateStandardPolicy();
 
         var orchestrator = new ImageGenerationOrchestrator(
-            db, compiler, spyProviderService, NullLogger<ImageGenerationOrchestrator>.Instance,
+            db, compiler, new ImageGenerationExecutorSelector(spyProviderService), NullLogger<ImageGenerationOrchestrator>.Instance,
             dateTimeProvider, qualityEvaluator, qualityGuardPolicy, lineageResolver, acceptanceService,
             capabilityPolicy: policy
         );

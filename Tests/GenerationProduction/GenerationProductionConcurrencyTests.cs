@@ -80,7 +80,7 @@ public sealed class GenerationProductionConcurrencyTests
         var capabilityPolicy = Infrastructure.ImageGeneration.WorkflowCapabilityPolicy.CreateDefault();
 
         var orchestrator1 = new ImageGenerationOrchestrator(
-            dbContext1, compiler1, imageService1, NullLogger<ImageGenerationOrchestrator>.Instance,
+            dbContext1, compiler1, new ImageGenerationExecutorSelector(imageService1), NullLogger<ImageGenerationOrchestrator>.Instance,
             dateTimeProvider, evaluator1, qualityGuardPolicy, lineageResolver1, acceptanceService1,
             capabilityPolicy: capabilityPolicy
         );
@@ -93,7 +93,7 @@ public sealed class GenerationProductionConcurrencyTests
         var evaluator2 = new DevelopmentPassThroughIdentityQualityEvaluator();
 
         var orchestrator2 = new ImageGenerationOrchestrator(
-            dbContext2, compiler2, imageService2, NullLogger<ImageGenerationOrchestrator>.Instance,
+            dbContext2, compiler2, new ImageGenerationExecutorSelector(imageService2), NullLogger<ImageGenerationOrchestrator>.Instance,
             dateTimeProvider, evaluator2, qualityGuardPolicy, lineageResolver2, acceptanceService2,
             capabilityPolicy: capabilityPolicy
         );

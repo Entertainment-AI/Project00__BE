@@ -72,7 +72,7 @@ public sealed class AtomicAttemptAcceptanceConcurrencyTests
         var orchestrator1 = new ImageGenerationOrchestrator(
             dbContext: db1,
             visualCompiler: compiler,
-            imageService: trackingImageService,
+            executorSelector: new ImageGenerationExecutorSelector(trackingImageService),
             logger: NullLogger<ImageGenerationOrchestrator>.Instance,
             dateTimeProvider: timeProvider,
             qualityEvaluator: evaluator,
@@ -85,7 +85,7 @@ public sealed class AtomicAttemptAcceptanceConcurrencyTests
         var orchestrator2 = new ImageGenerationOrchestrator(
             dbContext: db2,
             visualCompiler: compiler,
-            imageService: trackingImageService,
+            executorSelector: new ImageGenerationExecutorSelector(trackingImageService),
             logger: NullLogger<ImageGenerationOrchestrator>.Instance,
             dateTimeProvider: timeProvider,
             qualityEvaluator: evaluator,
@@ -205,7 +205,7 @@ public sealed class AtomicAttemptAcceptanceConcurrencyTests
         var orchestrator2 = new ImageGenerationOrchestrator(
             dbContext: dbWorker2,
             visualCompiler: compiler,
-            imageService: countingImageService,
+            executorSelector: new ImageGenerationExecutorSelector(countingImageService),
             logger: NullLogger<ImageGenerationOrchestrator>.Instance,
             dateTimeProvider: timeProvider,
             qualityEvaluator: evaluator,
@@ -440,7 +440,7 @@ public sealed class AtomicAttemptAcceptanceConcurrencyTests
         var orchestrator = new ImageGenerationOrchestrator(
             dbContext: db,
             visualCompiler: compiler,
-            imageService: imageService,
+            executorSelector: new ImageGenerationExecutorSelector(imageService),
             logger: NullLogger<ImageGenerationOrchestrator>.Instance,
             dateTimeProvider: timeProvider,
             qualityEvaluator: evaluator,
@@ -526,7 +526,7 @@ public sealed class AtomicAttemptAcceptanceConcurrencyTests
             var orchestrator1 = new ImageGenerationOrchestrator(
                 dbContext: dbWorker1,
                 visualCompiler: compiler,
-                imageService: trackingImageService,
+                executorSelector: new ImageGenerationExecutorSelector(trackingImageService),
                 logger: NullLogger<ImageGenerationOrchestrator>.Instance,
                 dateTimeProvider: timeProvider,
                 qualityEvaluator: evaluator,
@@ -548,7 +548,7 @@ public sealed class AtomicAttemptAcceptanceConcurrencyTests
             var orchestrator2 = new ImageGenerationOrchestrator(
                 dbContext: dbWorker2,
                 visualCompiler: compiler,
-                imageService: trackingImageService,
+                executorSelector: new ImageGenerationExecutorSelector(trackingImageService),
                 logger: NullLogger<ImageGenerationOrchestrator>.Instance,
                 dateTimeProvider: timeProvider,
                 qualityEvaluator: evaluator,

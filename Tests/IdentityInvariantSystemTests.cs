@@ -18,6 +18,7 @@ namespace Tests;
 
 public sealed class IdentityInvariantSystemTests
 {
+    private static readonly IModelRegistry Registry = new ConfigurationModelRegistry();
     private readonly VisualPromptCompiler _compiler = new();
 
     [Fact]
@@ -276,7 +277,7 @@ public sealed class IdentityInvariantSystemTests
     [InlineData("   ")]
     public void VisualContinuityWorkflowV2Builder_ThrowsOnUnsupportedOrMalformedWeightType(string invalidWeightType)
     {
-        var builder = new Infrastructure.ImageGeneration.ComfyUI.VisualContinuityWorkflowV2Builder();
+        var builder = new Infrastructure.ImageGeneration.ComfyUI.VisualContinuityWorkflowV2Builder(Registry);
         var request = new ImageGenerationRequest(
             Prompt: "1man, knight",
             NegativePrompt: "1girl",
@@ -292,7 +293,7 @@ public sealed class IdentityInvariantSystemTests
     [Fact]
     public void VisualContinuityWorkflowV2Builder_ThrowsWhenWeightTypeIsNotString()
     {
-        var builder = new Infrastructure.ImageGeneration.ComfyUI.VisualContinuityWorkflowV2Builder();
+        var builder = new Infrastructure.ImageGeneration.ComfyUI.VisualContinuityWorkflowV2Builder(Registry);
         var request = new ImageGenerationRequest(
             Prompt: "1man, knight",
             NegativePrompt: "1girl",
@@ -310,7 +311,7 @@ public sealed class IdentityInvariantSystemTests
     [InlineData(-0.1f)]
     public void VisualContinuityWorkflowV2Builder_WhenSceneWeightIsZeroOrNegative_CompletelyExcludesNode14FromGraph(float zeroWeight)
     {
-        var builder = new Infrastructure.ImageGeneration.ComfyUI.VisualContinuityWorkflowV2Builder();
+        var builder = new Infrastructure.ImageGeneration.ComfyUI.VisualContinuityWorkflowV2Builder(Registry);
         var request = new ImageGenerationRequest(
             Prompt: "1man, knight",
             NegativePrompt: "1girl",
@@ -339,7 +340,7 @@ public sealed class IdentityInvariantSystemTests
     [Fact]
     public void VisualContinuityWorkflowV2Builder_WhenSceneWeightIsPositive_ChainsNode14IntoKSampler()
     {
-        var builder = new Infrastructure.ImageGeneration.ComfyUI.VisualContinuityWorkflowV2Builder();
+        var builder = new Infrastructure.ImageGeneration.ComfyUI.VisualContinuityWorkflowV2Builder(Registry);
         var request = new ImageGenerationRequest(
             Prompt: "1man, knight",
             NegativePrompt: "1girl",

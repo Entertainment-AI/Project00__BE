@@ -1,9 +1,10 @@
-﻿using Application.Interfaces;
+using Application.Interfaces;
 using Application.Services;
 using Domain.Entities;
 using Domain.Enums;
 using Domain.ValueObjects;
 using Infrastructure.ImageGeneration.ComfyUI;
+using Infrastructure.Services;
 using System.Text.Json;
 using Xunit;
 
@@ -12,7 +13,7 @@ namespace Tests;
 public sealed class VisualIdentityFidelityBenchmarkTests
 {
     private readonly VisualPromptCompiler _compiler = new();
-    private readonly VisualIdentityWorkflowV1Builder _workflowBuilder = new();
+    private readonly VisualIdentityWorkflowV1Builder _workflowBuilder = new(new ConfigurationModelRegistry());
 
     private static readonly (string Name, CharacterVisualIdentity Identity, string DefaultOutfit)[] Archetypes = new[]
     {

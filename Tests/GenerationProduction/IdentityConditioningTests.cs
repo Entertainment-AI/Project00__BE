@@ -286,8 +286,9 @@ public sealed class IdentityConditioningTests
     [Fact]
     public void Test4_SD15WorkflowBuilders_MapIdentityIntent_ToExpectedComfyUIGraphNodes()
     {
-        IComfyUIWorkflowBuilder v1Builder = new VisualIdentityWorkflowV1Builder();
-        IComfyUIWorkflowBuilder v2Builder = new VisualContinuityWorkflowV2Builder();
+        var registry = new ConfigurationModelRegistry();
+        IComfyUIWorkflowBuilder v1Builder = new VisualIdentityWorkflowV1Builder(registry);
+        IComfyUIWorkflowBuilder v2Builder = new VisualContinuityWorkflowV2Builder(registry);
 
         const string canonUrl = "https://cdn.project00.ai/canon.png";
         const string prevUrl = "https://cdn.project00.ai/prev.png";
@@ -355,8 +356,9 @@ public sealed class IdentityConditioningTests
     [Fact]
     public void Test4b_SD15WorkflowBuilders_DefaultConditioning_ProducesIdenticalWorkflowGraph_AsBeforePR64()
     {
-        IComfyUIWorkflowBuilder v1Builder = new VisualIdentityWorkflowV1Builder();
-        IComfyUIWorkflowBuilder v2Builder = new VisualContinuityWorkflowV2Builder();
+        var registry = new ConfigurationModelRegistry();
+        IComfyUIWorkflowBuilder v1Builder = new VisualIdentityWorkflowV1Builder(registry);
+        IComfyUIWorkflowBuilder v2Builder = new VisualContinuityWorkflowV2Builder(registry);
         const string canonUrl = "https://cdn.project00.ai/canon.png";
         const string prevUrl = "https://cdn.project00.ai/prev.png";
 
@@ -464,16 +466,10 @@ public sealed class IdentityConditioningTests
         var qualityEvaluator = new DevelopmentPassThroughIdentityQualityEvaluator();
         var qualityGuardPolicy = new IdentityQualityGuardPolicy();
 
-        var builders = new IComfyUIWorkflowBuilder[]
-        {
-            new VisualIdentityWorkflowV1Builder(),
-            new VisualContinuityWorkflowV2Builder(),
-            new TextToImageWorkflowV1Builder()
-        };
-        var policy = new WorkflowCapabilityPolicy(builders);
+        var policy = WorkflowCapabilityPolicy.CreateDefault();
 
         var orchestrator = new ImageGenerationOrchestrator(
-            db, compiler, spyProvider, NullLogger<ImageGenerationOrchestrator>.Instance,
+            db, compiler, new ImageGenerationExecutorSelector(spyProvider), NullLogger<ImageGenerationOrchestrator>.Instance,
             dateTimeProvider, qualityEvaluator, qualityGuardPolicy, lineageResolver, acceptanceService,
             capabilityPolicy: policy
         );
