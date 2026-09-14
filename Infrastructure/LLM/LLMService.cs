@@ -254,8 +254,12 @@ public sealed class LLMService : ILLMService
             // fallback if Gemini prompt tags generation fails
         }
 
-        var isMale = request.VisualIdentity?.Gender?.Equals("Male", StringComparison.OrdinalIgnoreCase) == true;
-        var genderTag = isMale ? "1boy" : "1girl";
+        var genderTag = request.VisualIdentity?.ResolvedGender switch
+        {
+            GenderPresentation.Male => "1boy",
+            GenderPresentation.Female => "1girl",
+            _ => "1person"
+        };
 
         // Clean any literal template artifacts from Gemini
         cleanAvatarPrompt = cleanAvatarPrompt
@@ -264,13 +268,6 @@ public sealed class LLMService : ILLMService
             .Replace("<exact eyes>", "")
             .Replace("<exact face>", "")
             .Replace("<upper outfit details>", "");
-
-        cleanFullBodyPrompt = cleanFullBodyPrompt
-            .Replace("1girl/1boy", genderTag)
-            .Replace("<exact same hair>", "")
-            .Replace("<exact same eyes>", "")
-            .Replace("<exact same face>", "")
-            .Replace("<exact same intricate outfit>", "");
 
         if (string.IsNullOrWhiteSpace(cleanAvatarPrompt))
         {
@@ -285,21 +282,6 @@ public sealed class LLMService : ILLMService
         if (!cleanAvatarPrompt.Contains("ethereal", StringComparison.OrdinalIgnoreCase))
         {
             cleanAvatarPrompt += ", soft painterly lighting, ethereal atmospheric glow, luminous eyes, masterpiece, best quality";
-        }
-
-        if (string.IsNullOrWhiteSpace(cleanFullBodyPrompt))
-        {
-            cleanFullBodyPrompt = $"masterpiece, best quality, {genderTag}, solo, waist-up standing portrait, dynamic graceful posture, slight 3/4 turn, looking at viewer, delicate face, expressive luminous eyes, vibrant colors, ethereal magical lighting, cinematic atmospheric glow, soft rim light, glowing floating particles, soft painterly aesthetic, dramatic lighting, 8k";
-        }
-
-        if (!cleanFullBodyPrompt.Contains("solo", StringComparison.OrdinalIgnoreCase))
-        {
-            cleanFullBodyPrompt = $"masterpiece, best quality, {genderTag}, solo, waist-up standing portrait, dynamic graceful posture, sharp focus, " + cleanFullBodyPrompt;
-        }
-
-        if (!cleanFullBodyPrompt.Contains("ethereal", StringComparison.OrdinalIgnoreCase))
-        {
-            cleanFullBodyPrompt += ", slight 3/4 turn, ethereal magical lighting, cinematic atmospheric glow, soft rim light, glowing floating particles, luminous eyes, delicate face, soft painterly aesthetic, dramatic lighting, masterpiece, best quality";
         }
 
         var generatedSeed = Random.Shared.Next(1, int.MaxValue);
@@ -366,8 +348,12 @@ public sealed class LLMService : ILLMService
             // fallback if Gemini prompt tags generation fails
         }
 
-        var isMale = request.VisualIdentity?.Gender?.Equals("Male", StringComparison.OrdinalIgnoreCase) == true;
-        var genderTag = isMale ? "1boy" : "1girl";
+        var genderTag = request.VisualIdentity?.ResolvedGender switch
+        {
+            GenderPresentation.Male => "1boy",
+            GenderPresentation.Female => "1girl",
+            _ => "1person"
+        };
 
         cleanFullBodyPrompt = cleanFullBodyPrompt
             .Replace("1girl/1boy", genderTag)
@@ -378,17 +364,21 @@ public sealed class LLMService : ILLMService
 
         if (string.IsNullOrWhiteSpace(cleanFullBodyPrompt))
         {
-            cleanFullBodyPrompt = $"masterpiece, best quality, {genderTag}, solo, waist-up standing portrait, dynamic graceful posture, slight 3/4 turn, looking at viewer, delicate face, expressive luminous eyes, vibrant colors, ethereal magical lighting, cinematic atmospheric glow, soft rim light, glowing floating particles, soft painterly aesthetic, dramatic lighting, 8k";
+            cleanFullBodyPrompt = $"masterpiece, best quality, {genderTag}, solo, full-body standing character, head-to-toe composition, feet fully visible, entire silhouette visible, dynamic graceful posture, looking at viewer, expressive eyes, vibrant colors, ethereal magical lighting, cinematic atmospheric glow, soft rim light, white background, simple background, 8k";
         }
 
-        if (!cleanFullBodyPrompt.Contains("solo", StringComparison.OrdinalIgnoreCase))
+        if (!cleanFullBodyPrompt.Contains("full-body", StringComparison.OrdinalIgnoreCase) && !cleanFullBodyPrompt.Contains("full body", StringComparison.OrdinalIgnoreCase))
         {
-            cleanFullBodyPrompt = $"masterpiece, best quality, {genderTag}, solo, waist-up standing portrait, dynamic graceful posture, sharp focus, " + cleanFullBodyPrompt;
+            cleanFullBodyPrompt = $"masterpiece, best quality, {genderTag}, solo, full-body standing character, head-to-toe composition, feet fully visible, entire silhouette visible, dynamic graceful posture, looking at viewer, " + cleanFullBodyPrompt;
+        }
+        else if (!cleanFullBodyPrompt.Contains("solo", StringComparison.OrdinalIgnoreCase))
+        {
+            cleanFullBodyPrompt = $"masterpiece, best quality, {genderTag}, solo, " + cleanFullBodyPrompt;
         }
 
         if (!cleanFullBodyPrompt.Contains("ethereal", StringComparison.OrdinalIgnoreCase))
         {
-            cleanFullBodyPrompt += ", slight 3/4 turn, ethereal magical lighting, cinematic atmospheric glow, soft rim light, glowing floating particles, luminous eyes, delicate face, soft painterly aesthetic, dramatic lighting, masterpiece, best quality";
+            cleanFullBodyPrompt += ", ethereal magical lighting, cinematic atmospheric glow, soft rim light, glowing floating particles, luminous eyes, soft painterly aesthetic, dramatic lighting, masterpiece, best quality";
         }
 
         var generatedSeed = Random.Shared.Next(1, int.MaxValue);

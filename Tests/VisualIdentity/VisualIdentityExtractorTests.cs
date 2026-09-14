@@ -425,4 +425,59 @@ public sealed class VisualIdentityExtractorTests
         var standeeReq = imageService.RecordedRequests[0];
         Assert.Equal("https://cdn.project00.ai/gen_avatar.png", standeeReq.ReferenceImageUrl);
     }
+
+    [Fact]
+    public void BuildStandeePrompt_Enforces_FullBody_Standing_Composition_And_Avoids_WaistUp()
+    {
+        var identity = new CharacterVisualIdentity(
+            Gender: "Female",
+            Hair: "Silver long hair",
+            Eyes: "Blue",
+            Body: "Slender, tall",
+            ClothingStyle: "Royal tunic"
+        );
+
+        var prompt = Infrastructure.LLM.Prompts.CharacterGenerationPrompts.BuildStandeePrompt(
+            name: "Aria",
+            title: "Mage",
+            category: "Fantasy",
+            personality: "Wise",
+            idea: "Magic scholar",
+            worldGenre: Domain.Enums.WorldGenre.HighFantasy,
+            visualIdentity: identity
+        );
+
+        Assert.Contains("full-body standing character", prompt);
+        Assert.Contains("head-to-toe composition", prompt);
+        Assert.Contains("feet fully visible", prompt);
+        Assert.Contains("entire silhouette visible", prompt);
+        Assert.DoesNotContain("waist-up", prompt, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Theory]
+    [InlineData("Male", "1boy, solo")]
+    [InlineData("Female", "1girl, solo")]
+    [InlineData("Androgynous", "1person, solo")]
+    [InlineData("Other", "1person, solo")]
+    [InlineData(null, "1person, solo")]
+    [InlineData("Unknown", "1person, solo")]
+    public void BuildStandeePrompt_Resolves_Gender_Accurately_Without_Defaulting_Unknown_To_Female(string? genderInput, string expectedCoreTag)
+    {
+        var identity = new CharacterVisualIdentity(
+            Gender: genderInput,
+            Hair: "Black short hair"
+        );
+
+        var prompt = Infrastructure.LLM.Prompts.CharacterGenerationPrompts.BuildStandeePrompt(
+            name: "Rowan",
+            title: "Scout",
+            category: "Adventure",
+            personality: "Quiet",
+            idea: "Wandering scout",
+            worldGenre: Domain.Enums.WorldGenre.MundaneSliceOfLife,
+            visualIdentity: identity
+        );
+
+        Assert.Contains(expectedCoreTag, prompt);
+    }
 }
