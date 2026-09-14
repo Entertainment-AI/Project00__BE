@@ -124,6 +124,7 @@ public record GenerateAvatarRequest
     public string? Idea { get; init; }
     public WorldGenre? WorldGenre { get; init; }
     public CharacterVisualIdentity? VisualIdentity { get; init; }
+    public string? ReferenceImageUrl { get; init; }
 
     public GenerateAvatarRequest() { }
 
@@ -134,7 +135,8 @@ public record GenerateAvatarRequest
         string? personalityPrompt = null,
         string? idea = null,
         WorldGenre? worldGenre = null,
-        CharacterVisualIdentity? visualIdentity = null)
+        CharacterVisualIdentity? visualIdentity = null,
+        string? referenceImageUrl = null)
     {
         Name = name;
         Title = title;
@@ -143,6 +145,7 @@ public record GenerateAvatarRequest
         Idea = idea;
         WorldGenre = worldGenre;
         VisualIdentity = visualIdentity;
+        ReferenceImageUrl = referenceImageUrl;
     }
 }
 

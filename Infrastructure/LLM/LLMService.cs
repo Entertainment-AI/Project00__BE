@@ -304,33 +304,72 @@ public sealed class LLMService : ILLMService
         var generatedSeed = Random.Shared.Next(1, int.MaxValue);
         const string enhancedNegativePrompt = "2girls, 2boys, multiple people, group, crowd, duo, couple, 2persons, extra person, deformed horns, bad anatomy, bad hands, missing fingers, extra digits, cropped, watermark, blurry, low quality, mutated, text, error, stiff pose, flat lighting, dull colors, bad face, deformed eyes, crossed eyes";
 
-        // Step 1: Generate Close-up Face Avatar via TextToImage
-        var avatarRequest = new ImageGenerationRequest(
-            Prompt: cleanAvatarPrompt,
-            Width: 512,
-            Height: 512,
-            Seed: generatedSeed,
-            NegativePrompt: enhancedNegativePrompt,
-            Workflow: "TextToImage",
-            WorkflowVersion: 1
-        );
+        string avatarUrl;
+        string fullBodyUrl;
 
-        var avatarUrl = await _imageService.GenerateImageAsync(avatarRequest, ct);
+        if (!string.IsNullOrWhiteSpace(request.ReferenceImageUrl))
+        {
+            // When a visual reference is provided:
+            // Step 1: Generate Close-up Face Avatar conditioned on the Reference Image via VisualIdentity (IP-Adapter high face fidelity)
+            var avatarRequest = new ImageGenerationRequest(
+                Prompt: cleanAvatarPrompt,
+                Width: 512,
+                Height: 512,
+                Seed: generatedSeed,
+                ReferenceImageUrl: request.ReferenceImageUrl,
+                ParametersJson: "{\"ipAdapter\":{\"weight\":0.65,\"endAt\":0.85}}",
+                NegativePrompt: enhancedNegativePrompt,
+                Workflow: "VisualIdentity",
+                WorkflowVersion: 1
+            );
 
-        // Step 2: Generate Full-Body Standee via VisualIdentity Workflow (IP-Adapter conditioned on the Avatar with optimal artistic freedom)
-        var fullBodyRequest = new ImageGenerationRequest(
-            Prompt: cleanFullBodyPrompt,
-            Width: 512,
-            Height: 768,
-            Seed: generatedSeed,
-            ReferenceImageUrl: avatarUrl,
-            ParametersJson: "{\"ipAdapter\":{\"weight\":0.38,\"endAt\":0.60}}",
-            NegativePrompt: enhancedNegativePrompt,
-            Workflow: "VisualIdentity",
-            WorkflowVersion: 1
-        );
+            avatarUrl = await _imageService.GenerateImageAsync(avatarRequest, ct);
 
-        var fullBodyUrl = await _imageService.GenerateImageAsync(fullBodyRequest, ct);
+            // Step 2: Generate Full-Body Standee conditioned on the Face Avatar and Reference Image (preserving physique and artistic posture)
+            var fullBodyRequest = new ImageGenerationRequest(
+                Prompt: cleanFullBodyPrompt,
+                Width: 512,
+                Height: 768,
+                Seed: generatedSeed,
+                ReferenceImageUrl: avatarUrl,
+                ParametersJson: "{\"ipAdapter\":{\"weight\":0.45,\"endAt\":0.65}}",
+                NegativePrompt: enhancedNegativePrompt,
+                Workflow: "VisualIdentity",
+                WorkflowVersion: 1
+            );
+
+            fullBodyUrl = await _imageService.GenerateImageAsync(fullBodyRequest, ct);
+        }
+        else
+        {
+            // Step 1: Generate Close-up Face Avatar via TextToImage
+            var avatarRequest = new ImageGenerationRequest(
+                Prompt: cleanAvatarPrompt,
+                Width: 512,
+                Height: 512,
+                Seed: generatedSeed,
+                NegativePrompt: enhancedNegativePrompt,
+                Workflow: "TextToImage",
+                WorkflowVersion: 1
+            );
+
+            avatarUrl = await _imageService.GenerateImageAsync(avatarRequest, ct);
+
+            // Step 2: Generate Full-Body Standee via VisualIdentity Workflow (IP-Adapter conditioned on the Avatar with optimal artistic freedom)
+            var fullBodyRequest = new ImageGenerationRequest(
+                Prompt: cleanFullBodyPrompt,
+                Width: 512,
+                Height: 768,
+                Seed: generatedSeed,
+                ReferenceImageUrl: avatarUrl,
+                ParametersJson: "{\"ipAdapter\":{\"weight\":0.38,\"endAt\":0.60}}",
+                NegativePrompt: enhancedNegativePrompt,
+                Workflow: "VisualIdentity",
+                WorkflowVersion: 1
+            );
+
+            fullBodyUrl = await _imageService.GenerateImageAsync(fullBodyRequest, ct);
+        }
 
         return new GenerateAvatarResponse(avatarUrl, cleanAvatarPrompt, avatarUrl, fullBodyUrl, cleanFullBodyPrompt);
     }
