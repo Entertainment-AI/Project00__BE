@@ -15,6 +15,7 @@ public sealed class ConfigurationModelRegistry : IModelRegistry
     private static readonly ModelDefinition[] BaselineModels =
     [
         new ModelDefinition("meinamix", ModelFamily.Sd15, "meinamix_meinaV11.safetensors"),
+        new ModelDefinition("majicmixrealistic", ModelFamily.Sd15, "majicmixRealistic_v7.safetensors"),
         new ModelDefinition("epicrealism", ModelFamily.Sd15, "epicrealism_naturalSinRC1VAE.safetensors"),
         new ModelDefinition("anime3xl", ModelFamily.Sdxl, "animagineXLV3_base.safetensors"),
         new ModelDefinition("flux-dev", ModelFamily.Flux, "flux1-dev.safetensors")
@@ -31,7 +32,13 @@ public sealed class ConfigurationModelRegistry : IModelRegistry
             RegisterModel(baseline);
         }
 
-        // Backward compatibility: allow resolving legacy artifact filename to canonical epicrealism definition
+        // Backward compatibility / convenience aliases
+        if (_modelsById.TryGetValue("majicmixrealistic", out var baselineMajic))
+        {
+            _modelsByArtifactName.TryAdd("majicmixRealistic_v7.safetensors", baselineMajic);
+            _modelsByArtifactName.TryAdd("majicmixrealistic.safetensors", baselineMajic);
+        }
+
         if (_modelsById.TryGetValue("epicrealism", out var baselineEpic))
         {
             _modelsByArtifactName.TryAdd("epicrealism_naturalSin.safetensors", baselineEpic);

@@ -172,11 +172,17 @@ public static class CharacterGenerationPrompts
             - Lore & Personality: {personality ?? idea ?? "Unique fascinating character"}
             
             TASK:
-            Translate the character's exact visual identity (hair color/style, eye color, facial features, clothing, accessories, gender) and genre aesthetic into 35 - 50 rich, comma-separated English image prompt tags for a breathtaking close-up/upper-body avatar portrait:
-            1. Gender & Core Character (e.g. 1girl/1boy, solo, detailed portrait).
-            2. Exact Hair, Eyes, Face, Skin, and Outfit matching the Visual Identity attributes.
-            3. Distinctive Accessories and props mentioned in the visual profile.
-            4. Art Quality & Lighting tags: masterpiece, best quality, highly detailed face, expressive eyes, dynamic cinematic lighting, 8k.
+            Translate the character's exact visual identity (hair color/style, eye color, facial features, body/physique measurements, clothing, accessories, gender) and genre aesthetic into 35 - 50 rich, comma-separated English image prompt tags for a breathtaking close-up/upper-body avatar portrait:
+            1. Gender, Age & Core Character (e.g. 1girl/1boy, solo, teenage girl/boy if young, youthful face, detailed portrait).
+            2. Ethnicity & Facial Aesthetic: Adapt dynamically to the character's nationality, heritage, and lore:
+               - If an Asian heritage is explicitly indicated by nationality, heritage, or lore: include specific heritage tags matching their background (e.g. `Korean woman / Korean girl`, `Japanese woman / Japanese girl`, `Chinese woman / Chinese girl`, or `East Asian beauty`) with `delicate soft facial features, charming gentle expression`.
+               - If a non-Asian heritage is specified (e.g. Caucasian, Mediterranean, Middle Eastern, African, etc.): reflect their specific heritage and lore faithfully without forcing Asian attributes.
+               - If heritage is unspecified: focus on natural aesthetic beauty, facial harmony, and world genre without forcing an artificial ethnic label.
+               - In all realistic depictions: portray genuine human skin texture with visible pores and authentic candid lighting. NEVER output 'porcelain' or 'glass skin' as they make faces look artificial and plastic.
+            3. Exact Hair, Eyes, Face, Skin, and Outfit matching the Visual Identity attributes.
+            4. Distinctive Accessories, props, and any upper-body measurements/physique tags (e.g. large/medium breasts, slender neck) mentioned in the visual profile.
+            5. Age & Youthful/Mature Facial Features: If Age Appearance indicates a teenager (e.g. 15-18), include `teenage girl/boy, youthful face, youthful soft features, 16yo`. Never depict teenagers as mature 30yo adults.
+            6. Art Quality & Camera: raw photo, masterpiece, best quality, highly detailed face, authentic skin pores, expressive luminous eyes, natural 50mm photography, candid lighting, 8k uhd.
             
             Output ONLY the raw comma-separated English prompt tags.
             """;
@@ -245,12 +251,20 @@ public static class CharacterGenerationPrompts
                - Eye color MUST BE IDENTICAL.
                - Outfit style, fabric, and color palette MUST BE IDENTICAL.
                - Facial features and aesthetic MUST BE IDENTICAL.
+            3. BODY MEASUREMENTS & PHYSIQUE: If Body & Stature or Visual Traits specify measurements or curves (e.g. Vòng 1 / bust / breasts, Vòng 2 / waist, Vòng 3 / hips, 3 vòng, cup size, muscular, hourglass, curvy, petite, athletic), translate them accurately into Danbooru / Stable Diffusion tags (e.g., `large breasts`, `medium breasts`, `small breasts`, `slim waist`, `wide hips`, `curvy figure`, `hourglass figure`, `toned body`, `athletic build`, `tall`, `petite`) in the prompt. For AVATAR portrait include upper body / bust tags if applicable, and for FULLBODY include complete waist / hips / physique tags.
+            4. AGE & FACIAL YOUTHFULNESS: If the character's 'Age Appearance' is young (e.g. 14-19 years old, high school, teenage, 16 tuổi), you MUST include: `teenage girl (or teenage boy), youthful face, soft youthful features, young, 16 years old (or specific age)`. NEVER depict a teenager with mature 30-year-old adult facial features or severe aging makeup. If adult (20s, 30s), reflect `young adult woman`, `mature adult` accordingly.
+            5. ETHNICITY & FACIAL AESTHETICS:
+               - If an Asian heritage is explicitly indicated by nationality, heritage, or lore: reflect specific tags (Korean / Japanese / Chinese / East Asian beauty) with delicate soft facial features and charming subtle expression.
+               - If a non-Asian heritage is specified (Caucasian, Middle Eastern, etc.): depict their heritage faithfully matching the lore.
+               - If heritage is unspecified: prioritize natural aesthetic harmony, expressive features, and world genre without forcing an ethnic label.
+               - Avoid doll-like or artificial looks: depict authentic human skin with visible pores and natural candid lighting.
+            6. NATURAL SKIN & REALISM: NEVER output 'porcelain', 'glass skin', 'plastic', 'anime' for realistic characters. Always prefer 'raw photo, natural skin texture, visible pores, 50mm portrait'.
 
             OUTPUT FORMAT:
             You must output EXACTLY two lines starting with 'AVATAR:' and 'FULLBODY:' containing comma-separated English image prompt tags:
 
-            AVATAR: masterpiece, best quality, {{coreGenderTag}}, close-up face portrait, face focus, expressive luminous eyes, gentle subtle expression, <exact hair>, <exact eyes>, <exact face>, <upper outfit details>, soft painterly lighting, ethereal atmospheric glow, highly detailed, 8k
-            FULLBODY: masterpiece, best quality, {{coreGenderTag}}, waist-up standing portrait, dynamic graceful posture, slight 3/4 turn, looking at viewer, <exact same hair>, <exact same eyes>, <exact same face>, <exact same intricate outfit>, luxurious outfit details, ethereal magical lighting, cinematic atmospheric glow, soft rim light, glowing floating particles, luminous expressive eyes, delicate face, soft painterly aesthetic, dramatic lighting, sharp focus, 8k
+            AVATAR: raw photo, masterpiece, best quality, {{coreGenderTag}}, close-up face portrait, face focus, expressive luminous eyes, gentle subtle expression, genuine skin texture, visible pores, <exact hair>, <exact eyes>, <exact face>, <upper outfit details>, natural 50mm photography, authentic lighting, highly detailed, 8k
+            FULLBODY: raw photo, masterpiece, best quality, {{coreGenderTag}}, waist-up standing portrait, dynamic graceful posture, slight 3/4 turn, looking at viewer, <exact same hair>, <exact same eyes>, <exact same face>, <exact same intricate outfit>, luxurious outfit details, authentic natural lighting, genuine skin texture, luminous expressive eyes, delicate face, sharp focus, 8k
 
             Output ONLY these two lines.
             """;
