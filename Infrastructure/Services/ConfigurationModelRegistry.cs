@@ -32,17 +32,6 @@ public sealed class ConfigurationModelRegistry : IModelRegistry
             RegisterModel(baseline);
         }
 
-        // Backward compatibility / convenience aliases
-        if (_modelsById.TryGetValue("majicmixrealistic", out var baselineMajic))
-        {
-            _modelsByArtifactName.TryAdd("majicmixrealistic.safetensors", baselineMajic);
-        }
-
-        if (_modelsById.TryGetValue("epicrealism", out var baselineEpic))
-        {
-            _modelsByArtifactName.TryAdd("epicrealism_naturalSin.safetensors", baselineEpic);
-        }
-
         // 2. Overlay configured models if configuration section exists
         var modelsSection = configuration?.GetSection("AiProviders:ImageGeneration:Models");
         if (modelsSection != null && modelsSection.Exists())
