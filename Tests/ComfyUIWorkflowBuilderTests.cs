@@ -196,14 +196,14 @@ public sealed class ComfyUIWorkflowBuilderTests
         var json = System.Text.Json.JsonSerializer.Serialize(graph, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
 
         var dir = new System.IO.DirectoryInfo(System.AppContext.BaseDirectory);
-        while (dir != null && !System.IO.Directory.Exists(System.IO.Path.Combine(dir.FullName, "scripts")))
+        while (dir != null && !System.IO.Directory.Exists(System.IO.Path.Combine(dir.FullName, "Tests", "Fixtures", "Workflows")))
         {
             dir = dir.Parent;
         }
-        var scriptsDir = dir != null ? System.IO.Path.Combine(dir.FullName, "scripts") : null;
+        var fixturesDir = dir != null ? System.IO.Path.Combine(dir.FullName, "Tests", "Fixtures", "Workflows") : null;
 
-        Assert.NotNull(scriptsDir);
-        var templatePath = System.IO.Path.Combine(scriptsDir!, "production_workflow_v1_template.json");
+        Assert.NotNull(fixturesDir);
+        var templatePath = System.IO.Path.Combine(fixturesDir!, "production_workflow_v1_template.json");
         Assert.True(System.IO.File.Exists(templatePath), $"Template file must exist at {templatePath}");
 
         var existingJson = System.IO.File.ReadAllText(templatePath);
@@ -309,14 +309,14 @@ public sealed class ComfyUIWorkflowBuilderTests
         var json = System.Text.Json.JsonSerializer.Serialize(graph, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
 
         var dir = new System.IO.DirectoryInfo(System.AppContext.BaseDirectory);
-        while (dir != null && !System.IO.Directory.Exists(System.IO.Path.Combine(dir.FullName, "scripts")))
+        while (dir != null && !System.IO.Directory.Exists(System.IO.Path.Combine(dir.FullName, "Tests", "Fixtures", "Workflows")))
         {
             dir = dir.Parent;
         }
-        var scriptsDir = dir != null ? System.IO.Path.Combine(dir.FullName, "scripts") : null;
+        var fixturesDir = dir != null ? System.IO.Path.Combine(dir.FullName, "Tests", "Fixtures", "Workflows") : null;
 
-        Assert.NotNull(scriptsDir);
-        var templatePath = System.IO.Path.Combine(scriptsDir!, "production_workflow_v2_template.json");
+        Assert.NotNull(fixturesDir);
+        var templatePath = System.IO.Path.Combine(fixturesDir!, "production_workflow_v2_template.json");
         Assert.True(System.IO.File.Exists(templatePath), $"Template file must exist at {templatePath}");
 
         var existingJson = System.IO.File.ReadAllText(templatePath);
