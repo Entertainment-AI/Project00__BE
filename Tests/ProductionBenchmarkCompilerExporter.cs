@@ -178,7 +178,7 @@ public sealed class ProductionBenchmarkCompilerExporter
     {
         var exportedList = await GenerateAllAuthoritativeRequestsAsync();
 
-        var artifactsDir = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "eval_artifacts_v23"));
+        var artifactsDir = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "eval_artifacts", "v23"));
         Directory.CreateDirectory(artifactsDir);
         var jsonPath = Path.Combine(artifactsDir, "authoritative_compiled_requests.json");
         var jsonContent = JsonSerializer.Serialize(exportedList, new JsonSerializerOptions { WriteIndented = true });
@@ -193,7 +193,7 @@ public sealed class ProductionBenchmarkCompilerExporter
     {
         var freshlyGenerated = await GenerateAllAuthoritativeRequestsAsync();
 
-        var artifactsDir = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "eval_artifacts_v23"));
+        var artifactsDir = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "eval_artifacts", "v23"));
         var jsonPath = Path.Combine(artifactsDir, "authoritative_compiled_requests.json");
 
         Assert.True(File.Exists(jsonPath), $"Committed JSON not found at: {jsonPath}");
@@ -399,7 +399,7 @@ public sealed class ProductionBenchmarkCompilerExporter
     {
         var pr24Plans = await GenerateAllAuthoritativePR24PlansAsync();
 
-        var artifactsDir = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "eval_artifacts_pr24"));
+        var artifactsDir = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "eval_artifacts", "pr24"));
         Directory.CreateDirectory(artifactsDir);
         var targetFile = Path.Combine(artifactsDir, "authoritative_pr24_plan.json");
 
@@ -415,7 +415,7 @@ public sealed class ProductionBenchmarkCompilerExporter
     {
         var freshlyGenerated = await GenerateAllAuthoritativePR24PlansAsync();
 
-        var artifactsDir = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "eval_artifacts_pr24"));
+        var artifactsDir = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "eval_artifacts", "pr24"));
         var jsonPath = Path.Combine(artifactsDir, "authoritative_pr24_plan.json");
 
         Assert.True(File.Exists(jsonPath), $"Committed PR24 JSON not found at: {jsonPath}");

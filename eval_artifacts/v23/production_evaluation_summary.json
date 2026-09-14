@@ -15,7 +15,7 @@
     "hair_retention": "8/8",
     "eye_retention": "8/8",
     "feature_retention": "8/8",
-    "contact_sheet": "G:\\New folder (5)\\BE\\eval_artifacts_v23\\character_01_lyra\\character_01_lyra_contact_sheet.png",
+    "contact_sheet": "G:\\New folder (5)\\BE\\eval_artifacts\v23\\character_01_lyra\\character_01_lyra_contact_sheet.png",
     "turns": [
       {
         "turn": 1,
@@ -32,7 +32,7 @@
         "hair_retained": true,
         "eyes_retained": true,
         "feature_retained": true,
-        "artifact_path": "G:\\New folder (5)\\BE\\eval_artifacts_v23\\character_01_lyra\\turn_01_standing.png"
+        "artifact_path": "G:\\New folder (5)\\BE\\eval_artifacts\v23\\character_01_lyra\\turn_01_standing.png"
       },
       {
         "turn": 2,
@@ -49,7 +49,7 @@
         "hair_retained": true,
         "eyes_retained": true,
         "feature_retained": true,
-        "artifact_path": "G:\\New folder (5)\\BE\\eval_artifacts_v23\\character_01_lyra\\turn_02_walking.png"
+        "artifact_path": "G:\\New folder (5)\\BE\\eval_artifacts\v23\\character_01_lyra\\turn_02_walking.png"
       },
       {
         "turn": 3,
@@ -66,7 +66,7 @@
         "hair_retained": true,
         "eyes_retained": true,
         "feature_retained": true,
-        "artifact_path": "G:\\New folder (5)\\BE\\eval_artifacts_v23\\character_01_lyra\\turn_03_kneeling.png"
+        "artifact_path": "G:\\New folder (5)\\BE\\eval_artifacts\v23\\character_01_lyra\\turn_03_kneeling.png"
       },
       {
         "turn": 4,
@@ -83,7 +83,7 @@
         "hair_retained": true,
         "eyes_retained": true,
         "feature_retained": true,
-        "artifact_path": "G:\\New folder (5)\\BE\\eval_artifacts_v23\\character_01_lyra\\turn_04_standing_smiling.png"
+        "artifact_path": "G:\\New folder (5)\\BE\\eval_artifacts\v23\\character_01_lyra\\turn_04_standing_smiling.png"
       },
       {
         "turn": 5,
@@ -100,7 +100,7 @@
         "hair_retained": true,
         "eyes_retained": true,
         "feature_retained": true,
-        "artifact_path": "G:\\New folder (5)\\BE\\eval_artifacts_v23\\character_01_lyra\\turn_05_sitting.png"
+        "artifact_path": "G:\\New folder (5)\\BE\\eval_artifacts\v23\\character_01_lyra\\turn_05_sitting.png"
       },
       {
         "turn": 6,
@@ -117,7 +117,7 @@
         "hair_retained": true,
         "eyes_retained": true,
         "feature_retained": true,
-        "artifact_path": "G:\\New folder (5)\\BE\\eval_artifacts_v23\\character_01_lyra\\turn_06_reading_leaning.png"
+        "artifact_path": "G:\\New folder (5)\\BE\\eval_artifacts\v23\\character_01_lyra\\turn_06_reading_leaning.png"
       },
       {
         "turn": 7,
@@ -134,7 +134,7 @@
         "hair_retained": true,
         "eyes_retained": true,
         "feature_retained": true,
-        "artifact_path": "G:\\New folder (5)\\BE\\eval_artifacts_v23\\character_01_lyra\\turn_07_walking.png"
+        "artifact_path": "G:\\New folder (5)\\BE\\eval_artifacts\v23\\character_01_lyra\\turn_07_walking.png"
       },
       {
         "turn": 8,
@@ -151,7 +151,7 @@
         "hair_retained": true,
         "eyes_retained": true,
         "feature_retained": true,
-        "artifact_path": "G:\\New folder (5)\\BE\\eval_artifacts_v23\\character_01_lyra\\turn_08_leaning_gazing.png"
+        "artifact_path": "G:\\New folder (5)\\BE\\eval_artifacts\v23\\character_01_lyra\\turn_08_leaning_gazing.png"
       }
     ]
   },
@@ -171,7 +171,7 @@
     "hair_retention": "8/8",
     "eye_retention": "8/8",
     "feature_retention": "8/8",
-    "contact_sheet": "G:\\New folder (5)\\BE\\eval_artifacts_v23\\character_02_elysia\\character_02_elysia_contact_sheet.png",
+    "contact_sheet": "G:\\New folder (5)\\BE\\eval_artifacts\v23\\character_02_elysia\\character_02_elysia_contact_sheet.png",
     "turns": [
       {
         "turn": 1,
@@ -188,7 +188,7 @@
         "hair_retained": true,
         "eyes_retained": true,
         "feature_retained": true,
-        "artifact_path": "G:\\New folder (5)\\BE\\eval_artifacts_v23\\character_02_elysia\\turn_01_standing.png"
+        "artifact_path": "G:\\New folder (5)\\BE\\eval_artifacts\v23\\character_02_elysia\\turn_01_standing.png"
       },
       {
         "turn": 2,
@@ -205,7 +205,7 @@
         "hair_retained": true,
         "eyes_retained": true,
         "feature_retained": true,
-        "artifact_path": "G:\\New folder (5)\\BE\\eval_artifacts_v23\\character_02_elysia\\turn_02_walking.png"
+        "artifact_path": "G:\\New folder (5)\\BE\\eval_artifacts\v23\\character_02_elysia\\turn_02_walking.png"
       },
       {
         "turn": 3,
@@ -222,7 +222,7 @@
         "hair_retained": true,
         "eyes_retained": true,
         "feature_retained": true,
-        "artifact_path": "G:\\New folder (5)\\BE\\eval_artifacts_v23\\character_02_elysia\\turn_03_sitting.png"
+        "artifact_path": "G:\\New folder (5)\\BE\\eval_artifacts\v23\\character_02_elysia\\turn_03_sitting.png"
       },
       {
         "turn": 4,
@@ -239,7 +239,7 @@
         "hair_retained": true,
         "eyes_retained": true,
         "feature_retained": true,
-        "artifact_path": "G:\\New folder (5)\\BE\\eval_artifacts_v23\\character_02_elysia\\turn_04_kneeling.png"
+        "artifact_path": "G:\\New folder (5)\\BE\\eval_artifacts\v23\\character_02_elysia\\turn_04_kneeling.png"
       },
       {
         "turn": 5,
@@ -256,7 +256,7 @@
         "hair_retained": true,
         "eyes_retained": true,
         "feature_retained": true,
-        "artifact_path": "G:\\New folder (5)\\BE\\eval_artifacts_v23\\character_02_elysia\\turn_05_standing_smiling.png"
+        "artifact_path": "G:\\New folder (5)\\BE\\eval_artifacts\v23\\character_02_elysia\\turn_05_standing_smiling.png"
       },
       {
         "turn": 6,
@@ -273,7 +273,7 @@
         "hair_retained": true,
         "eyes_retained": true,
         "feature_retained": true,
-        "artifact_path": "G:\\New folder (5)\\BE\\eval_artifacts_v23\\character_02_elysia\\turn_06_sitting.png"
+        "artifact_path": "G:\\New folder (5)\\BE\\eval_artifacts\v23\\character_02_elysia\\turn_06_sitting.png"
       },
       {
         "turn": 7,
@@ -290,7 +290,7 @@
         "hair_retained": true,
         "eyes_retained": true,
         "feature_retained": true,
-        "artifact_path": "G:\\New folder (5)\\BE\\eval_artifacts_v23\\character_02_elysia\\turn_07_standing_leaning.png"
+        "artifact_path": "G:\\New folder (5)\\BE\\eval_artifacts\v23\\character_02_elysia\\turn_07_standing_leaning.png"
       },
       {
         "turn": 8,
@@ -307,7 +307,7 @@
         "hair_retained": true,
         "eyes_retained": true,
         "feature_retained": true,
-        "artifact_path": "G:\\New folder (5)\\BE\\eval_artifacts_v23\\character_02_elysia\\turn_08_standing_smiling.png"
+        "artifact_path": "G:\\New folder (5)\\BE\\eval_artifacts\v23\\character_02_elysia\\turn_08_standing_smiling.png"
       }
     ]
   },
@@ -327,7 +327,7 @@
     "hair_retention": "8/8",
     "eye_retention": "8/8",
     "feature_retention": "7/8",
-    "contact_sheet": "G:\\New folder (5)\\BE\\eval_artifacts_v23\\character_03_valerius\\character_03_valerius_contact_sheet.png",
+    "contact_sheet": "G:\\New folder (5)\\BE\\eval_artifacts\v23\\character_03_valerius\\character_03_valerius_contact_sheet.png",
     "turns": [
       {
         "turn": 1,
@@ -344,7 +344,7 @@
         "hair_retained": true,
         "eyes_retained": true,
         "feature_retained": true,
-        "artifact_path": "G:\\New folder (5)\\BE\\eval_artifacts_v23\\character_03_valerius\\turn_01_standing.png"
+        "artifact_path": "G:\\New folder (5)\\BE\\eval_artifacts\v23\\character_03_valerius\\turn_01_standing.png"
       },
       {
         "turn": 2,
@@ -361,7 +361,7 @@
         "hair_retained": true,
         "eyes_retained": true,
         "feature_retained": true,
-        "artifact_path": "G:\\New folder (5)\\BE\\eval_artifacts_v23\\character_03_valerius\\turn_02_sitting.png"
+        "artifact_path": "G:\\New folder (5)\\BE\\eval_artifacts\v23\\character_03_valerius\\turn_02_sitting.png"
       },
       {
         "turn": 3,
@@ -378,7 +378,7 @@
         "hair_retained": true,
         "eyes_retained": true,
         "feature_retained": false,
-        "artifact_path": "G:\\New folder (5)\\BE\\eval_artifacts_v23\\character_03_valerius\\turn_03_leaning.png"
+        "artifact_path": "G:\\New folder (5)\\BE\\eval_artifacts\v23\\character_03_valerius\\turn_03_leaning.png"
       },
       {
         "turn": 4,
@@ -395,7 +395,7 @@
         "hair_retained": true,
         "eyes_retained": true,
         "feature_retained": true,
-        "artifact_path": "G:\\New folder (5)\\BE\\eval_artifacts_v23\\character_03_valerius\\turn_04_standing.png"
+        "artifact_path": "G:\\New folder (5)\\BE\\eval_artifacts\v23\\character_03_valerius\\turn_04_standing.png"
       },
       {
         "turn": 5,
@@ -412,7 +412,7 @@
         "hair_retained": true,
         "eyes_retained": true,
         "feature_retained": true,
-        "artifact_path": "G:\\New folder (5)\\BE\\eval_artifacts_v23\\character_03_valerius\\turn_05_sitting.png"
+        "artifact_path": "G:\\New folder (5)\\BE\\eval_artifacts\v23\\character_03_valerius\\turn_05_sitting.png"
       },
       {
         "turn": 6,
@@ -429,7 +429,7 @@
         "hair_retained": true,
         "eyes_retained": true,
         "feature_retained": true,
-        "artifact_path": "G:\\New folder (5)\\BE\\eval_artifacts_v23\\character_03_valerius\\turn_06_standing_leaning.png"
+        "artifact_path": "G:\\New folder (5)\\BE\\eval_artifacts\v23\\character_03_valerius\\turn_06_standing_leaning.png"
       },
       {
         "turn": 7,
@@ -446,7 +446,7 @@
         "hair_retained": true,
         "eyes_retained": true,
         "feature_retained": true,
-        "artifact_path": "G:\\New folder (5)\\BE\\eval_artifacts_v23\\character_03_valerius\\turn_07_walking.png"
+        "artifact_path": "G:\\New folder (5)\\BE\\eval_artifacts\v23\\character_03_valerius\\turn_07_walking.png"
       },
       {
         "turn": 8,
@@ -463,7 +463,7 @@
         "hair_retained": true,
         "eyes_retained": true,
         "feature_retained": true,
-        "artifact_path": "G:\\New folder (5)\\BE\\eval_artifacts_v23\\character_03_valerius\\turn_08_standing.png"
+        "artifact_path": "G:\\New folder (5)\\BE\\eval_artifacts\v23\\character_03_valerius\\turn_08_standing.png"
       }
     ]
   }

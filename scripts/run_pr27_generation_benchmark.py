@@ -17,10 +17,10 @@ Taxonomy & Execution Modes:
 Notice: PR #27 does not claim real GPU performance validation (which requires live dedicated ComfyUI worker nodes).
 
 Outputs:
-  - eval_artifacts_pr27/stage_1_matrix.json
-  - eval_artifacts_pr27/stage_1_report.md
-  - eval_artifacts_pr27/stage_2_matrix.json
-  - eval_artifacts_pr27/stage_2_report.md
+  - eval_artifacts/pr27/stage_1_matrix.json
+  - eval_artifacts/pr27/stage_1_report.md
+  - eval_artifacts/pr27/stage_2_matrix.json
+  - eval_artifacts/pr27/stage_2_report.md
 """
 
 import os
@@ -32,7 +32,7 @@ import subprocess
 import numpy as np
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-ARTIFACTS_DIR = os.path.join(BASE_DIR, "eval_artifacts_pr27")
+ARTIFACTS_DIR = os.path.join(BASE_DIR, "eval_artifacts", "pr27")
 os.makedirs(ARTIFACTS_DIR, exist_ok=True)
 
 PERSONAS = [
