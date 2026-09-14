@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 using System.Text.Json;
 using Application.Abstractions.Auth;
 using Application.Abstractions.Data;
@@ -81,7 +81,7 @@ public sealed class UserTriggeredTurnImageGenerationTests
                 ClothingStyle: outfit,
                 Accessories: null,
                 VisualTraits: null,
-                CanonicalReferenceUrl: "https://cloud.storage/elysia_canonical.png"
+                CanonicalFaceReferenceUrl: "https://cloud.storage/elysia_canonical.png"
             ),
             sceneState: new SessionSceneState(
                 CurrentLocation: "Garden",
@@ -202,7 +202,7 @@ public sealed class UserTriggeredTurnImageGenerationTests
                 ClothingStyle: "Heavy Black Armor",
                 Accessories: "Broadsword",
                 VisualTraits: null,
-                CanonicalReferenceUrl: "https://cloud.storage/elysia_armor.png"
+                CanonicalFaceReferenceUrl: "https://cloud.storage/elysia_armor.png"
             )
         ) { Id = charId };
         await db.Characters.AddAsync(currentCharacter);

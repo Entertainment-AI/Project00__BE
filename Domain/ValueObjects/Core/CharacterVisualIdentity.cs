@@ -13,14 +13,26 @@ public sealed record CharacterVisualIdentity(
     string? ClothingStyle = null,
     string? Accessories = null,
     string? VisualTraits = null,
-    string? CanonicalReferenceUrl = null,
-    string? FullBodyUrl = null,
+    string? CanonicalFaceReferenceUrl = null,
+    string? CanonicalBodyReferenceUrl = null,
+    string? OriginalReferenceUrl = null,
     GenderPresentation Presentation = GenderPresentation.Unspecified,
     IReadOnlyList<SignatureFeature>? SignatureFeatures = null,
     string? Style = null,
     VisualStyle VisualStyle = VisualStyle.Unspecified
 )
 {
+    /// <summary>
+    /// Backward-compatible alias for CanonicalFaceReferenceUrl.
+    /// </summary>
+    [Obsolete("Use CanonicalFaceReferenceUrl instead.")]
+    public string? CanonicalReferenceUrl => CanonicalFaceReferenceUrl;
+
+    /// <summary>
+    /// Backward-compatible alias for CanonicalBodyReferenceUrl.
+    /// </summary>
+    [Obsolete("Use CanonicalBodyReferenceUrl instead.")]
+    public string? FullBodyUrl => CanonicalBodyReferenceUrl;
     public GenderPresentation ResolvedGender
     {
         get
@@ -93,9 +105,11 @@ public sealed record CharacterVisualIdentity(
         Slot2Context context = Slot2Context.ColdStart,
         Slot2ConditioningMode continuityMode = Slot2ConditioningMode.SceneStyleContinuity)
     {
-        var referenceUrl = !string.IsNullOrWhiteSpace(CanonicalReferenceUrl)
-            ? CanonicalReferenceUrl
-            : (!string.IsNullOrWhiteSpace(FullBodyUrl) ? FullBodyUrl : null);
+        var referenceUrl = !string.IsNullOrWhiteSpace(CanonicalFaceReferenceUrl)
+            ? CanonicalFaceReferenceUrl
+            : (!string.IsNullOrWhiteSpace(CanonicalBodyReferenceUrl)
+                ? CanonicalBodyReferenceUrl
+                : (!string.IsNullOrWhiteSpace(OriginalReferenceUrl) ? OriginalReferenceUrl : null));
 
         return IdentityConditioningIntent.FromReferences(
             canonicalReferenceUrl: referenceUrl,

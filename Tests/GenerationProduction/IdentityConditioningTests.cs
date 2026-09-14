@@ -69,7 +69,7 @@ public sealed class IdentityConditioningTests
             Eyes: "crimson eyes",
             Style: "Anime",
             VisualStyle: VisualStyle.Anime,
-            CanonicalReferenceUrl: canonicalReferenceUrl
+            CanonicalFaceReferenceUrl: canonicalReferenceUrl
         );
 
         return VisualSnapshot.Create(
@@ -110,7 +110,7 @@ public sealed class IdentityConditioningTests
             Presentation: GenderPresentation.Female,
             Hair: "raven black hair",
             Eyes: "sapphire blue eyes",
-            CanonicalReferenceUrl: "https://cdn.project00.ai/characters/aeloria_canon.png"
+            CanonicalFaceReferenceUrl: "https://cdn.project00.ai/characters/aeloria_canon.png"
         );
 
         // Derive intent from the character identity
@@ -159,7 +159,7 @@ public sealed class IdentityConditioningTests
         var identityWithRef = new CharacterVisualIdentity(
             Hair: "golden blonde",
             Eyes: "emerald green",
-            CanonicalReferenceUrl: canonUrl
+            CanonicalFaceReferenceUrl: canonUrl
         );
 
         var intentWithRef = identityWithRef.CreateConditioningIntent();
@@ -173,8 +173,8 @@ public sealed class IdentityConditioningTests
         var identityWithoutRef = new CharacterVisualIdentity(
             Hair: "golden blonde",
             Eyes: "emerald green",
-            CanonicalReferenceUrl: null,
-            FullBodyUrl: null
+            CanonicalFaceReferenceUrl: null,
+            CanonicalBodyReferenceUrl: null
         );
 
         var intentWithoutRef = identityWithoutRef.CreateConditioningIntent();

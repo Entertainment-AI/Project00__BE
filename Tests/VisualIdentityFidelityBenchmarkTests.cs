@@ -28,7 +28,7 @@ public sealed class VisualIdentityFidelityBenchmarkTests
                 Body: "slender graceful build",
                 ClothingStyle: "white gown with dark green corset",
                 Accessories: "golden gear hair ornament, jade earrings",
-                CanonicalReferenceUrl: "https://cloud.storage/seraphina_face_crop.png"
+                CanonicalFaceReferenceUrl: "https://cloud.storage/seraphina_face_crop.png"
             ),
             "white gown with dark green corset"
         ),
@@ -43,7 +43,7 @@ public sealed class VisualIdentityFidelityBenchmarkTests
                 Body: "petite build",
                 ClothingStyle: "black gothic lolita dress",
                 Accessories: "black lace choker, magical silver brooch",
-                CanonicalReferenceUrl: "https://cloud.storage/elysia_face_crop.png"
+                CanonicalFaceReferenceUrl: "https://cloud.storage/elysia_face_crop.png"
             ),
             "black gothic lolita dress"
         ),
@@ -58,7 +58,7 @@ public sealed class VisualIdentityFidelityBenchmarkTests
                 Body: "athletic muscular build",
                 ClothingStyle: "dark leather knight tunic with silver pauldrons",
                 Accessories: "silver browband, leather bracers",
-                CanonicalReferenceUrl: "https://cloud.storage/kaelen_face_crop.png"
+                CanonicalFaceReferenceUrl: "https://cloud.storage/kaelen_face_crop.png"
             ),
             "dark leather knight tunic with silver pauldrons"
         ),
@@ -73,7 +73,7 @@ public sealed class VisualIdentityFidelityBenchmarkTests
                 Body: "slender feminine build",
                 ClothingStyle: "flowing white and lavender silk robe",
                 Accessories: "cherry blossom hairpin, crystal pendant",
-                CanonicalReferenceUrl: "https://cloud.storage/lunaria_face_crop.png"
+                CanonicalFaceReferenceUrl: "https://cloud.storage/lunaria_face_crop.png"
             ),
             "flowing white and lavender silk robe"
         ),
@@ -88,7 +88,7 @@ public sealed class VisualIdentityFidelityBenchmarkTests
                 Body: "toned agile build",
                 ClothingStyle: "fitted black leather stealth outfit with crimson trims",
                 Accessories: "leather neck choker, throwing knife holster",
-                CanonicalReferenceUrl: "https://cloud.storage/scarlet_face_crop.png"
+                CanonicalFaceReferenceUrl: "https://cloud.storage/scarlet_face_crop.png"
             ),
             "fitted black leather stealth outfit with crimson trims"
         )

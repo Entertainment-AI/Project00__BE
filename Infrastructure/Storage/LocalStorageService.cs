@@ -72,4 +72,37 @@ public sealed class LocalStorageService : IStorageService
 
         return Task.FromResult(false);
     }
+
+    public async Task<byte[]?> ReadImageBytesAsync(string fileUrl, CancellationToken ct = default)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(fileUrl))
+            {
+                return null;
+            }
+
+            var cleanUrl = fileUrl.Trim();
+            if (!cleanUrl.StartsWith("/uploads/", StringComparison.OrdinalIgnoreCase) &&
+                !cleanUrl.StartsWith("uploads/", StringComparison.OrdinalIgnoreCase))
+            {
+                return null;
+            }
+
+            var webRoot = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+            var relativePath = cleanUrl.TrimStart('/').Replace('/', Path.DirectorySeparatorChar);
+            var fullPath = Path.Combine(webRoot, relativePath);
+
+            if (File.Exists(fullPath))
+            {
+                return await File.ReadAllBytesAsync(fullPath, ct);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to read image bytes: {Url}", fileUrl);
+        }
+
+        return null;
+    }
 }

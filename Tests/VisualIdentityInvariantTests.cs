@@ -117,7 +117,7 @@ public sealed class VisualIdentityInvariantTests
             visualIdentity: new CharacterVisualIdentity(
                 Hair: "Silver long hair",
                 Eyes: "Crimson red eyes",
-                CanonicalReferenceUrl: canonicalRef
+                CanonicalFaceReferenceUrl: canonicalRef
             ),
             sceneState: new SessionSceneState(
                 CurrentLocation: "Sanctuary",
@@ -1104,7 +1104,7 @@ public sealed class VisualIdentityInvariantTests
             ClothingStyle: "robe",
             Accessories: null,
             VisualTraits: null,
-            CanonicalReferenceUrl: "canonical.png",
+            CanonicalFaceReferenceUrl: "canonical.png",
             VisualStyle: VisualStyle.Anime
         );
         var character = new Character("Aria", "Mage", "https://example.com/avatar.jpg", "Friendly", "Hello", "Fantasy", visualIdentity: visualIdentity);
@@ -1200,7 +1200,7 @@ public sealed class VisualIdentityInvariantTests
             ClothingStyle: "starry robe",
             Accessories: null,
             VisualTraits: null,
-            CanonicalReferenceUrl: "canonical.png",
+            CanonicalFaceReferenceUrl: "canonical.png",
             VisualStyle: VisualStyle.Anime
         );
 
@@ -1235,22 +1235,22 @@ public sealed class VisualIdentityInvariantTests
         var sceneState = new SessionSceneState("Sanctuary", "Central", "Dress", "Day", null, "Calm", 1, Clock.Now);
 
         // 1. Canonical Reference provided: strictly selects Canonical
-        var v1 = new CharacterVisualIdentity(CanonicalReferenceUrl: "canonical.png", FullBodyUrl: "fullbody.png");
+        var v1 = new CharacterVisualIdentity(CanonicalFaceReferenceUrl: "canonical.png", CanonicalBodyReferenceUrl: "fullbody.png");
         var snap1 = VisualSnapshot.Create(turnId, sessionId, charId, 1, v1, sceneState, null, profile, fallbackReferenceUrl: "avatar.png");
         Assert.Equal("canonical.png", snap1.IdentityReferenceUrl);
 
         // 2. Canonical Reference null, Avatar provided: selects Avatar
-        var v2 = new CharacterVisualIdentity(CanonicalReferenceUrl: null, FullBodyUrl: "fullbody.png");
+        var v2 = new CharacterVisualIdentity(CanonicalFaceReferenceUrl: null, CanonicalBodyReferenceUrl: "fullbody.png");
         var snap2 = VisualSnapshot.Create(turnId, sessionId, charId, 1, v2, sceneState, null, profile, fallbackReferenceUrl: "avatar.png");
         Assert.Equal("avatar.png", snap2.IdentityReferenceUrl);
 
         // 3. Canonical and Avatar null, FullBody provided: selects FullBody
-        var v3 = new CharacterVisualIdentity(CanonicalReferenceUrl: null, FullBodyUrl: "fullbody.png");
+        var v3 = new CharacterVisualIdentity(CanonicalFaceReferenceUrl: null, CanonicalBodyReferenceUrl: "fullbody.png");
         var snap3 = VisualSnapshot.Create(turnId, sessionId, charId, 1, v3, sceneState, null, profile, fallbackReferenceUrl: null);
         Assert.Equal("fullbody.png", snap3.IdentityReferenceUrl);
 
         // 4. All null: resolves null
-        var v4 = new CharacterVisualIdentity(CanonicalReferenceUrl: null, FullBodyUrl: null);
+        var v4 = new CharacterVisualIdentity(CanonicalFaceReferenceUrl: null, CanonicalBodyReferenceUrl: null);
         var snap4 = VisualSnapshot.Create(turnId, sessionId, charId, 1, v4, sceneState, null, profile, fallbackReferenceUrl: null);
         Assert.Null(snap4.IdentityReferenceUrl);
     }
@@ -1360,5 +1360,7 @@ public sealed class VisualIdentityInvariantTests
             => Task.FromResult($"/uploads/{fileName}");
         public Task<bool> DeleteFileAsync(string fileUrl, CancellationToken ct = default)
             => Task.FromResult(true);
+        public Task<byte[]?> ReadImageBytesAsync(string fileUrl, CancellationToken ct = default)
+            => Task.FromResult<byte[]?>(null);
     }
 }

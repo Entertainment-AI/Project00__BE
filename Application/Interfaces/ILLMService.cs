@@ -48,6 +48,10 @@ public interface ILLMService
         GenerateAvatarRequest request,
         CancellationToken ct = default);
 
+    Task<GenerateStandeeResponse> GenerateStandeeAsync(
+        GenerateStandeeRequest request,
+        CancellationToken ct = default);
+
     Task<GenerateAvatarResponse> GenerateSceneImageAsync(
         GenerateSceneImageRequest request,
         CancellationToken ct = default);

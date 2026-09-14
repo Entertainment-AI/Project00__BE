@@ -1,4 +1,4 @@
-﻿using Domain.Entities;
+using Domain.Entities;
 using Domain.ValueObjects;
 using Xunit;
 
@@ -133,7 +133,7 @@ public class SceneStateTrackerTests
             Eyes: "Emerald green eyes",
             Skin: "Fair skin",
             Body: "Slender athletic build",
-            CanonicalReferenceUrl: "https://cloud.storage/elysia_canonical.png"
+            CanonicalFaceReferenceUrl: "https://cloud.storage/elysia_canonical.png"
         );
 
         var stateTurn1 = new SessionSceneState(

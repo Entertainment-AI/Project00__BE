@@ -101,12 +101,50 @@ public sealed class CharactersController : ControllerBase
     }
 
     /// <summary>
-    /// Generates a stunning anime avatar image using AI
+    /// Extracts structured visual identity traits from an uploaded reference photo (evidence-bound)
+    /// </summary>
+    [HttpPost("extract-identity")]
+    public async Task<IActionResult> ExtractVisualIdentity(
+        [FromForm] IFormFile? file,
+        [FromQuery] string? imageUrl,
+        CancellationToken ct)
+    {
+        Application.Features.Characters.Commands.ExtractVisualIdentity.ExtractVisualIdentityCommand command;
+        if (file != null && file.Length > 0)
+        {
+            var stream = file.OpenReadStream();
+            command = new Application.Features.Characters.Commands.ExtractVisualIdentity.ExtractVisualIdentityCommand(stream, file.FileName, file.ContentType);
+        }
+        else if (!string.IsNullOrWhiteSpace(imageUrl))
+        {
+            command = new Application.Features.Characters.Commands.ExtractVisualIdentity.ExtractVisualIdentityCommand(ExistingImageUrl: imageUrl);
+        }
+        else
+        {
+            return BadRequest(new { message = "An image file or imageUrl must be provided." });
+        }
+
+        var result = await _sender.Send(command, ct);
+        return result.ToActionResult();
+    }
+
+    /// <summary>
+    /// Generates a stunning anime avatar image using AI (canonical face anchor)
     /// </summary>
     [HttpPost("generate-avatar")]
     public async Task<IActionResult> GenerateAvatar([FromBody] GenerateAvatarRequest request, CancellationToken ct)
     {
         var result = await _sender.Send(new Application.Features.Characters.Commands.GenerateAvatar.GenerateAvatarCommand(request), ct);
+        return result.ToActionResult();
+    }
+
+    /// <summary>
+    /// Generates a full-body standee image for a character (candidate body anchor)
+    /// </summary>
+    [HttpPost("generate-standee")]
+    public async Task<IActionResult> GenerateStandee([FromBody] GenerateStandeeRequest request, CancellationToken ct)
+    {
+        var result = await _sender.Send(new Application.Features.Characters.Commands.GenerateStandee.GenerateStandeeCommand(request), ct);
         return result.ToActionResult();
     }
 

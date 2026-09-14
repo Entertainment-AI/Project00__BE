@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using Application.Abstractions.Auth;
 using Application.Common;
 using Application.DTOs;
@@ -77,7 +77,7 @@ public sealed class SceneImageQueryEndpointTests
                 ClothingStyle: "White Dress",
                 Accessories: null,
                 VisualTraits: null,
-                CanonicalReferenceUrl: "https://cloud.storage/elysia_canonical.png"
+                CanonicalFaceReferenceUrl: "https://cloud.storage/elysia_canonical.png"
             ),
             sceneState: new SessionSceneState(
                 CurrentLocation: "Garden",

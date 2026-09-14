@@ -69,7 +69,7 @@ public class VisualContinuity8TurnBenchmarkTests
                     Skin: "Fair skin",
                     Body: "Slender athletic build",
                     ClothingStyle: "White Dress",
-                    CanonicalReferenceUrl: canonicalIdentityUrl,
+                    CanonicalFaceReferenceUrl: canonicalIdentityUrl,
                     VisualStyle: VisualStyle.Anime
                 )
             ) { Id = charId };
@@ -274,7 +274,7 @@ public class VisualContinuity8TurnBenchmarkTests
                 Hair: "White",
                 Eyes: "Red",
                 ClothingStyle: "Silk dress",
-                CanonicalReferenceUrl: "https://cloud.storage/lyra_canonical.png",
+                CanonicalFaceReferenceUrl: "https://cloud.storage/lyra_canonical.png",
                 VisualStyle: VisualStyle.Anime
             )
         );
@@ -356,7 +356,7 @@ public class VisualContinuity8TurnBenchmarkTests
             personalityPrompt: "Calm",
             greeting: "Greetings",
             category: "Anime",
-            visualIdentity: new CharacterVisualIdentity(Gender: "Female", AgeAppearance: "19", Hair: "White", Eyes: "Red", ClothingStyle: "Dress", CanonicalReferenceUrl: "https://cloud.storage/lyra_canonical.png", VisualStyle: VisualStyle.Anime)
+            visualIdentity: new CharacterVisualIdentity(Gender: "Female", AgeAppearance: "19", Hair: "White", Eyes: "Red", ClothingStyle: "Dress", CanonicalFaceReferenceUrl: "https://cloud.storage/lyra_canonical.png", VisualStyle: VisualStyle.Anime)
         );
         var session = new ChatSession(characterId, Guid.NewGuid(), "Roleplay");
         typeof(Domain.Common.BaseEntity).GetProperty("Id")!.SetValue(session, sessionId);
@@ -417,7 +417,7 @@ public class VisualContinuity8TurnBenchmarkTests
             personalityPrompt: "Calm",
             greeting: "Greetings",
             category: "Anime",
-            visualIdentity: new CharacterVisualIdentity(Gender: "Female", AgeAppearance: "19", Hair: "White", Eyes: "Red", ClothingStyle: "Dress", CanonicalReferenceUrl: "https://cloud.storage/lyra_canonical.png", VisualStyle: VisualStyle.Anime)
+            visualIdentity: new CharacterVisualIdentity(Gender: "Female", AgeAppearance: "19", Hair: "White", Eyes: "Red", ClothingStyle: "Dress", CanonicalFaceReferenceUrl: "https://cloud.storage/lyra_canonical.png", VisualStyle: VisualStyle.Anime)
         );
 
         // Turn 1 Committed Artifact Image 1
@@ -543,6 +543,7 @@ public class VisualContinuity8TurnBenchmarkTests
         public Task<List<string>> GenerateRandomIdeasAsync(int count = 4, CancellationToken ct = default) => throw new NotImplementedException();
         public Task<List<string>> GenerateRoleplaySuggestionsAsync(Character character, IReadOnlyCollection<ChatMessage> history, CancellationToken ct = default) => throw new NotImplementedException();
         public Task<GenerateAvatarResponse> GenerateAvatarAsync(GenerateAvatarRequest request, CancellationToken ct = default) => throw new NotImplementedException();
+        public Task<GenerateStandeeResponse> GenerateStandeeAsync(GenerateStandeeRequest request, CancellationToken ct = default) => throw new NotImplementedException();
         public Task<GenerateAvatarResponse> GenerateSceneImageAsync(GenerateSceneImageRequest request, CancellationToken ct = default) => throw new NotImplementedException();
         public Task<List<MemoryCandidate>> ExtractMemoryCandidatesAsync(Character character, IReadOnlyCollection<ChatMessageDto> recentMessages, CancellationToken ct = default) => Task.FromResult(new List<MemoryCandidate>());
         public Task<ProactiveAiReachoutResult> GenerateProactiveReachoutAsync(Character character, UserProfile userProfile, CancellationToken ct = default) => Task.FromResult(new ProactiveAiReachoutResult("Hi", "Matched"));

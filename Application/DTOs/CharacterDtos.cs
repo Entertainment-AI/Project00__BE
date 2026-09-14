@@ -124,6 +124,7 @@ public record GenerateAvatarRequest
     public string? Idea { get; init; }
     public WorldGenre? WorldGenre { get; init; }
     public CharacterVisualIdentity? VisualIdentity { get; init; }
+    public string? ReferenceImageUrl { get; init; }
 
     public GenerateAvatarRequest() { }
 
@@ -134,7 +135,8 @@ public record GenerateAvatarRequest
         string? personalityPrompt = null,
         string? idea = null,
         WorldGenre? worldGenre = null,
-        CharacterVisualIdentity? visualIdentity = null)
+        CharacterVisualIdentity? visualIdentity = null,
+        string? referenceImageUrl = null)
     {
         Name = name;
         Title = title;
@@ -143,6 +145,7 @@ public record GenerateAvatarRequest
         Idea = idea;
         WorldGenre = worldGenre;
         VisualIdentity = visualIdentity;
+        ReferenceImageUrl = referenceImageUrl;
     }
 }
 
@@ -153,3 +156,52 @@ public record GenerateAvatarResponse(
     string? FullBodyUrl = null,
     string? FullBodyPrompt = null
 );
+
+public record GenerateStandeeRequest
+{
+    public string? Name { get; init; }
+    public string? Title { get; init; }
+    public string? Category { get; init; }
+    public string? PersonalityPrompt { get; init; }
+    public string? Idea { get; init; }
+    public WorldGenre? WorldGenre { get; init; }
+    public CharacterVisualIdentity? VisualIdentity { get; init; }
+    public string? ReferenceImageUrl { get; init; }
+    public string? AvatarUrl { get; init; }
+    public string? BodyReferenceUrl { get; init; }
+
+    public GenerateStandeeRequest() { }
+
+    public GenerateStandeeRequest(
+        string? name = null,
+        string? title = null,
+        string? category = null,
+        string? personalityPrompt = null,
+        string? idea = null,
+        WorldGenre? worldGenre = null,
+        CharacterVisualIdentity? visualIdentity = null,
+        string? referenceImageUrl = null,
+        string? avatarUrl = null,
+        string? bodyReferenceUrl = null)
+    {
+        Name = name;
+        Title = title;
+        Category = category;
+        PersonalityPrompt = personalityPrompt;
+        Idea = idea;
+        WorldGenre = worldGenre;
+        VisualIdentity = visualIdentity;
+        ReferenceImageUrl = referenceImageUrl;
+        AvatarUrl = avatarUrl;
+        BodyReferenceUrl = bodyReferenceUrl;
+    }
+}
+
+public record GenerateStandeeResponse(
+    string ImageUrl,
+    string RevisedPrompt,
+    string? StandeeUrl = null
+)
+{
+    public string? CanonicalBodyReferenceUrl => StandeeUrl;
+}

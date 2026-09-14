@@ -28,8 +28,8 @@ public sealed class VisualSemanticSceneTests
             Body: "slender build",
             ClothingStyle: "black gothic lolita dress",
             Accessories: "silver hairpin, obsidian pendant",
-            CanonicalReferenceUrl: "https://cloud.storage/seraphina_avatar.png",
-            FullBodyUrl: "https://cloud.storage/seraphina_fullbody.png"
+            CanonicalFaceReferenceUrl: "https://cloud.storage/seraphina_avatar.png",
+            CanonicalBodyReferenceUrl: "https://cloud.storage/seraphina_fullbody.png"
         );
 
         var sceneState = new SessionSceneState(

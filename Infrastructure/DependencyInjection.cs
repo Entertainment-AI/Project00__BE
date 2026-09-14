@@ -319,6 +319,7 @@ public static class DependencyInjection
         // 7. Add LLM Services & Prompt Compiler
         services.AddSingleton<IPromptCompiler, Infrastructure.LLM.Prompts.PromptCompiler>();
         services.AddHttpClient<Infrastructure.LLM.Core.GeminiApiClient>();
+        services.AddScoped<IVisualIdentityExtractor, Infrastructure.LLM.Services.GeminiVisualIdentityExtractor>();
         services.AddScoped<ILLMService, Infrastructure.LLM.LLMService>();
         services.AddScoped<ISceneStateTrackerService, SceneStateTrackerService>();
 

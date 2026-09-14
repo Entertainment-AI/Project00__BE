@@ -1,4 +1,4 @@
-﻿using Application.Services;
+using Application.Services;
 using Domain.Entities;
 using Domain.Enums;
 using Domain.ValueObjects;
@@ -35,7 +35,7 @@ public sealed class VisualPredecessorResolverTests
             SessionId: sessionId,
             CharacterId: characterId,
             SceneRevision: 1,
-            VisualIdentity: new CharacterVisualIdentity(CanonicalReferenceUrl: identityRef),
+            VisualIdentity: new CharacterVisualIdentity(CanonicalFaceReferenceUrl: identityRef),
             SceneState: new SessionSceneState("courtyard", "standing"),
             TransientState: null,
             GenerationProfile: GenerationProfile.CreateDefault("meinamix_meinaV11.safetensors", seed: 1000L),

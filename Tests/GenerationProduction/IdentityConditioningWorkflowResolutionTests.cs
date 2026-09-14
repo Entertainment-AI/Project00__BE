@@ -70,7 +70,7 @@ public sealed class IdentityConditioningWorkflowResolutionTests
             Eyes: "crimson eyes",
             Style: "Anime",
             VisualStyle: VisualStyle.Anime,
-            CanonicalReferenceUrl: canonicalReferenceUrl
+            CanonicalFaceReferenceUrl: canonicalReferenceUrl
         );
 
         var profile = workflow == null

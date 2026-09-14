@@ -5,6 +5,7 @@ using Application.DTOs;
 using Application.Interfaces;
 using Domain.Entities;
 using Domain.Enums;
+using Domain.ValueObjects;
 using Infrastructure.LLM.Core;
 using Infrastructure.LLM.Prompts;
 using Microsoft.Extensions.Configuration;
@@ -253,8 +254,12 @@ public sealed class LLMService : ILLMService
             // fallback if Gemini prompt tags generation fails
         }
 
-        var isMale = request.VisualIdentity?.Gender?.Equals("Male", StringComparison.OrdinalIgnoreCase) == true;
-        var genderTag = isMale ? "1boy" : "1girl";
+        var genderTag = request.VisualIdentity?.ResolvedGender switch
+        {
+            GenderPresentation.Male => "1boy",
+            GenderPresentation.Female => "1girl",
+            _ => "1person"
+        };
 
         // Clean any literal template artifacts from Gemini
         cleanAvatarPrompt = cleanAvatarPrompt
@@ -263,13 +268,6 @@ public sealed class LLMService : ILLMService
             .Replace("<exact eyes>", "")
             .Replace("<exact face>", "")
             .Replace("<upper outfit details>", "");
-
-        cleanFullBodyPrompt = cleanFullBodyPrompt
-            .Replace("1girl/1boy", genderTag)
-            .Replace("<exact same hair>", "")
-            .Replace("<exact same eyes>", "")
-            .Replace("<exact same face>", "")
-            .Replace("<exact same intricate outfit>", "");
 
         if (string.IsNullOrWhiteSpace(cleanAvatarPrompt))
         {
@@ -286,53 +284,136 @@ public sealed class LLMService : ILLMService
             cleanAvatarPrompt += ", soft painterly lighting, ethereal atmospheric glow, luminous eyes, masterpiece, best quality";
         }
 
-        if (string.IsNullOrWhiteSpace(cleanFullBodyPrompt))
-        {
-            cleanFullBodyPrompt = $"masterpiece, best quality, {genderTag}, solo, waist-up standing portrait, dynamic graceful posture, slight 3/4 turn, looking at viewer, delicate face, expressive luminous eyes, vibrant colors, ethereal magical lighting, cinematic atmospheric glow, soft rim light, glowing floating particles, soft painterly aesthetic, dramatic lighting, 8k";
-        }
-
-        if (!cleanFullBodyPrompt.Contains("solo", StringComparison.OrdinalIgnoreCase))
-        {
-            cleanFullBodyPrompt = $"masterpiece, best quality, {genderTag}, solo, waist-up standing portrait, dynamic graceful posture, sharp focus, " + cleanFullBodyPrompt;
-        }
-
-        if (!cleanFullBodyPrompt.Contains("ethereal", StringComparison.OrdinalIgnoreCase))
-        {
-            cleanFullBodyPrompt += ", slight 3/4 turn, ethereal magical lighting, cinematic atmospheric glow, soft rim light, glowing floating particles, luminous eyes, delicate face, soft painterly aesthetic, dramatic lighting, masterpiece, best quality";
-        }
-
         var generatedSeed = Random.Shared.Next(1, int.MaxValue);
         const string enhancedNegativePrompt = "2girls, 2boys, multiple people, group, crowd, duo, couple, 2persons, extra person, deformed horns, bad anatomy, bad hands, missing fingers, extra digits, cropped, watermark, blurry, low quality, mutated, text, error, stiff pose, flat lighting, dull colors, bad face, deformed eyes, crossed eyes";
 
-        // Step 1: Generate Close-up Face Avatar via TextToImage
+        string avatarUrl;
+
         var avatarRequest = new ImageGenerationRequest(
             Prompt: cleanAvatarPrompt,
             Width: 512,
             Height: 512,
             Seed: generatedSeed,
-            NegativePrompt: enhancedNegativePrompt,
-            Workflow: "TextToImage",
-            WorkflowVersion: 1
+            ReferenceImageUrl: request.ReferenceImageUrl,
+            IdentityScale: !string.IsNullOrWhiteSpace(request.ReferenceImageUrl) ? 0.65f : null,
+            IdentityConditioning: !string.IsNullOrWhiteSpace(request.ReferenceImageUrl)
+                ? IdentityConditioningIntent.FromReferences(request.ReferenceImageUrl, preservationStrength: 0.65f)
+                : IdentityConditioningIntent.None,
+            NegativePrompt: enhancedNegativePrompt
         );
 
-        var avatarUrl = await _imageService.GenerateImageAsync(avatarRequest, ct);
+        avatarUrl = await _imageService.GenerateImageAsync(avatarRequest, ct);
 
-        // Step 2: Generate Full-Body Standee via VisualIdentity Workflow (IP-Adapter conditioned on the Avatar with optimal artistic freedom)
-        var fullBodyRequest = new ImageGenerationRequest(
+        return new GenerateAvatarResponse(avatarUrl, cleanAvatarPrompt, avatarUrl, null, null);
+    }
+
+    public async Task<GenerateStandeeResponse> GenerateStandeeAsync(
+        GenerateStandeeRequest request,
+        CancellationToken ct = default)
+    {
+        var standeeSystemPrompt = CharacterGenerationPrompts.BuildStandeePrompt(
+            request.Name,
+            request.Title,
+            request.Category,
+            request.PersonalityPrompt,
+            request.Idea,
+            request.WorldGenre,
+            request.VisualIdentity);
+
+        string cleanFullBodyPrompt = "";
+
+        try
+        {
+            var rawResult = await _geminiClient.GenerateTextAsync(
+                systemPrompt: standeeSystemPrompt,
+                contents: new[]
+                {
+                    new
+                    {
+                        role = "user",
+                        parts = new[] { new { text = "Generate the Standee image prompt tags now." } }
+                    }
+                },
+                temperature: 0.7,
+                maxOutputTokens: 250,
+                ct: ct);
+
+            if (!string.IsNullOrWhiteSpace(rawResult))
+            {
+                cleanFullBodyPrompt = rawResult.Trim();
+            }
+        }
+        catch
+        {
+            // fallback if Gemini prompt tags generation fails
+        }
+
+        var genderTag = request.VisualIdentity?.ResolvedGender switch
+        {
+            GenderPresentation.Male => "1boy",
+            GenderPresentation.Female => "1girl",
+            _ => "1person"
+        };
+
+        cleanFullBodyPrompt = cleanFullBodyPrompt
+            .Replace("1girl/1boy", genderTag)
+            .Replace("<exact same hair>", "")
+            .Replace("<exact same eyes>", "")
+            .Replace("<exact same face>", "")
+            .Replace("<exact same intricate outfit>", "");
+
+        if (string.IsNullOrWhiteSpace(cleanFullBodyPrompt))
+        {
+            cleanFullBodyPrompt = $"masterpiece, best quality, {genderTag}, solo, full-body standing character, head-to-toe composition, feet fully visible, entire silhouette visible, dynamic graceful posture, looking at viewer, expressive eyes, vibrant colors, ethereal magical lighting, cinematic atmospheric glow, soft rim light, white background, simple background, 8k";
+        }
+
+        if (!cleanFullBodyPrompt.Contains("full-body", StringComparison.OrdinalIgnoreCase) && !cleanFullBodyPrompt.Contains("full body", StringComparison.OrdinalIgnoreCase))
+        {
+            cleanFullBodyPrompt = $"masterpiece, best quality, {genderTag}, solo, full-body standing character, head-to-toe composition, feet fully visible, entire silhouette visible, dynamic graceful posture, looking at viewer, " + cleanFullBodyPrompt;
+        }
+        else if (!cleanFullBodyPrompt.Contains("solo", StringComparison.OrdinalIgnoreCase))
+        {
+            cleanFullBodyPrompt = $"masterpiece, best quality, {genderTag}, solo, " + cleanFullBodyPrompt;
+        }
+
+        if (!cleanFullBodyPrompt.Contains("ethereal", StringComparison.OrdinalIgnoreCase))
+        {
+            cleanFullBodyPrompt += ", ethereal magical lighting, cinematic atmospheric glow, soft rim light, glowing floating particles, luminous eyes, soft painterly aesthetic, dramatic lighting, masterpiece, best quality";
+        }
+
+        var generatedSeed = Random.Shared.Next(1, int.MaxValue);
+        const string enhancedNegativePrompt = "2girls, 2boys, multiple people, group, crowd, duo, couple, 2persons, extra person, deformed horns, bad anatomy, bad hands, missing fingers, extra digits, cropped, watermark, blurry, low quality, mutated, text, error, stiff pose, flat lighting, dull colors, bad face, deformed eyes, crossed eyes";
+
+        // Priority for Body Reference:
+        // 1. Explicit Body Reference / CanonicalBodyReferenceUrl (if caller provides explicit body anchor)
+        // 2. Original Reference Image (Ground truth containing full-body/silhouette evidence)
+        // 3. Avatar Face Anchor (fallback only if no body or original reference exists)
+        var referenceAnchor = !string.IsNullOrWhiteSpace(request.BodyReferenceUrl)
+            ? request.BodyReferenceUrl
+            : (!string.IsNullOrWhiteSpace(request.VisualIdentity?.CanonicalBodyReferenceUrl)
+                ? request.VisualIdentity.CanonicalBodyReferenceUrl
+                : (!string.IsNullOrWhiteSpace(request.ReferenceImageUrl)
+                    ? request.ReferenceImageUrl
+                    : (!string.IsNullOrWhiteSpace(request.VisualIdentity?.OriginalReferenceUrl)
+                        ? request.VisualIdentity.OriginalReferenceUrl
+                        : request.AvatarUrl)));
+
+        var standeeRequest = new ImageGenerationRequest(
             Prompt: cleanFullBodyPrompt,
             Width: 512,
             Height: 768,
             Seed: generatedSeed,
-            ReferenceImageUrl: avatarUrl,
-            ParametersJson: "{\"ipAdapter\":{\"weight\":0.38,\"endAt\":0.60}}",
-            NegativePrompt: enhancedNegativePrompt,
-            Workflow: "VisualIdentity",
-            WorkflowVersion: 1
+            ReferenceImageUrl: referenceAnchor,
+            IdentityScale: !string.IsNullOrWhiteSpace(referenceAnchor) ? 0.45f : null,
+            IdentityConditioning: !string.IsNullOrWhiteSpace(referenceAnchor)
+                ? IdentityConditioningIntent.FromReferences(referenceAnchor, preservationStrength: 0.45f)
+                : IdentityConditioningIntent.None,
+            NegativePrompt: enhancedNegativePrompt
         );
 
-        var fullBodyUrl = await _imageService.GenerateImageAsync(fullBodyRequest, ct);
+        var fullBodyUrl = await _imageService.GenerateImageAsync(standeeRequest, ct);
 
-        return new GenerateAvatarResponse(avatarUrl, cleanAvatarPrompt, avatarUrl, fullBodyUrl, cleanFullBodyPrompt);
+        return new GenerateStandeeResponse(fullBodyUrl, cleanFullBodyPrompt, fullBodyUrl);
     }
 
     private async Task<string> CropFaceAvatarFromMasterAsync(string masterImageUrl, CancellationToken ct = default)

@@ -46,7 +46,7 @@ public class TurnCommitVisualSnapshotOutboxTests
                 Skin: "Fair skin",
                 Body: "Slender athletic build",
                 ClothingStyle: "White Dress",
-                CanonicalReferenceUrl: "https://cloud.storage/elysia_canonical.png",
+                CanonicalFaceReferenceUrl: "https://cloud.storage/elysia_canonical.png",
                 VisualStyle: VisualStyle.Anime
             )
         ) { Id = charId };
@@ -190,7 +190,7 @@ public class TurnCommitVisualSnapshotOutboxTests
             VisualIdentity: new CharacterVisualIdentity(
                 Hair: "platinum blonde hair",
                 ClothingStyle: "White Dress",
-                CanonicalReferenceUrl: "https://cloud.storage/elysia_canonical.png",
+                CanonicalFaceReferenceUrl: "https://cloud.storage/elysia_canonical.png",
                 VisualStyle: VisualStyle.Anime
             ),
             SceneState: new SessionSceneState(
@@ -352,7 +352,7 @@ public class TurnCommitVisualSnapshotOutboxTests
                 Gender: "Female",
                 Hair: "Pink",
                 ClothingStyle: "Holy Silk Dress",
-                CanonicalReferenceUrl: "https://cloud.storage/canonical.png",
+                CanonicalFaceReferenceUrl: "https://cloud.storage/canonical.png",
                 VisualStyle: VisualStyle.Anime
             )
         ) { Id = charId };
@@ -456,7 +456,7 @@ public class TurnCommitVisualSnapshotOutboxTests
                 category: "Anime",
                 visualIdentity: new CharacterVisualIdentity(
                     ClothingStyle: "White Dress",
-                    CanonicalReferenceUrl: "https://cloud.storage/elysia_canonical.png",
+                    CanonicalFaceReferenceUrl: "https://cloud.storage/elysia_canonical.png",
                     VisualStyle: VisualStyle.Anime
                 )
             ) { Id = charId };
@@ -750,6 +750,7 @@ public class TurnCommitVisualSnapshotOutboxTests
         public Task<List<string>> GenerateRandomIdeasAsync(int count = 4, CancellationToken ct = default) => throw new NotImplementedException();
         public Task<List<string>> GenerateRoleplaySuggestionsAsync(Character character, IReadOnlyCollection<ChatMessage> history, CancellationToken ct = default) => throw new NotImplementedException();
         public Task<GenerateAvatarResponse> GenerateAvatarAsync(GenerateAvatarRequest request, CancellationToken ct = default) => throw new NotImplementedException();
+        public Task<GenerateStandeeResponse> GenerateStandeeAsync(GenerateStandeeRequest request, CancellationToken ct = default) => throw new NotImplementedException();
         public Task<GenerateAvatarResponse> GenerateSceneImageAsync(GenerateSceneImageRequest request, CancellationToken ct = default) => throw new NotImplementedException();
         public Task<List<MemoryCandidate>> ExtractMemoryCandidatesAsync(Character character, IReadOnlyCollection<ChatMessageDto> recentMessages, CancellationToken ct = default) => Task.FromResult(new List<MemoryCandidate>());
         public Task<ProactiveAiReachoutResult> GenerateProactiveReachoutAsync(Character character, UserProfile userProfile, CancellationToken ct = default) => Task.FromResult(new ProactiveAiReachoutResult("Hi", "Matched"));
@@ -794,7 +795,7 @@ public class TurnCommitVisualSnapshotOutboxTests
                 Body: "Slender",
                 ClothingStyle: "Pastel Pink Sundress",
                 VisualTraits: "(small black dragon horns on head:1.3)",
-                CanonicalReferenceUrl: "https://cloud.storage/Lyra_tight_face.png",
+                CanonicalFaceReferenceUrl: "https://cloud.storage/Lyra_tight_face.png",
                 VisualStyle: VisualStyle.Anime
             )
         ) { Id = charId };

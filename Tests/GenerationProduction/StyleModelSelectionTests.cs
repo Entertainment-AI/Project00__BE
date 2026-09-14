@@ -32,7 +32,7 @@ public sealed class StyleModelSelectionTests
         var identity = new CharacterVisualIdentity(
             Style: style.ToString(),
             VisualStyle: style,
-            CanonicalReferenceUrl: "https://cdn.project00.ai/aria_face.png"
+            CanonicalFaceReferenceUrl: "https://cdn.project00.ai/aria_face.png"
         );
 
         return new Character(
@@ -260,7 +260,7 @@ public sealed class StyleModelSelectionTests
         var identity = new CharacterVisualIdentity(
             Hair: "Silver",
             Eyes: "Crimson",
-            CanonicalReferenceUrl: "https://cdn.project00.ai/aria_face.png",
+            CanonicalFaceReferenceUrl: "https://cdn.project00.ai/aria_face.png",
             VisualStyle: VisualStyle.Unspecified
         );
 

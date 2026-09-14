@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using Application.DTOs;
 using Application.Exceptions;
 using Application.Interfaces;
@@ -141,7 +141,7 @@ public sealed class OutboxReliabilityAndOrderingTests
             Hair: "platinum blonde",
             Eyes: "green",
             Body: "slender",
-            CanonicalReferenceUrl: "https://files.catbox.moe/g2343q.png"
+            CanonicalFaceReferenceUrl: "https://files.catbox.moe/g2343q.png"
         );
         var sceneState = new SessionSceneState(
             CurrentLocation: location,

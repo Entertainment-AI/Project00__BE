@@ -1,3 +1,5 @@
+using Domain.Enums;
+
 namespace Infrastructure.LLM.Prompts;
 
 public static class CharacterGenerationPrompts
@@ -229,9 +231,12 @@ public static class CharacterGenerationPrompts
             }
         }
 
-        var coreGenderTag = (visualIdentity?.Gender?.Equals("Male", StringComparison.OrdinalIgnoreCase) == true)
-            ? "1boy, solo"
-            : (visualIdentity?.Gender?.Equals("Female", StringComparison.OrdinalIgnoreCase) == true ? "1girl, solo" : "1person, solo");
+        var coreGenderTag = visualIdentity?.ResolvedGender switch
+        {
+            GenderPresentation.Male => "1boy, solo",
+            GenderPresentation.Female => "1girl, solo",
+            _ => "1person, solo"
+        };
 
         return $$"""
             You are an Elite Character Concept Artist & Visual Designer specializing in creating 100% CONSISTENT Character Art Sheets (Close-Up Avatar Portrait + Full-Body Standee).
@@ -247,26 +252,96 @@ public static class CharacterGenerationPrompts
             CRITICAL REQUIREMENTS:
             1. EXACTLY ONE PERSON (SOLO): The image MUST depict ONLY {{name ?? "the single character"}}. Never output tags for companions, groups, couples, or secondary people.
             2. CONSISTENCY: Both the Avatar and Full-Body images MUST represent the EXACT SAME CHARACTER.
-               - Hair color and hairstyle MUST BE IDENTICAL.
-               - Eye color MUST BE IDENTICAL.
-               - Outfit style, fabric, and color palette MUST BE IDENTICAL.
-               - Facial features and aesthetic MUST BE IDENTICAL.
+                - Hair color and hairstyle MUST BE IDENTICAL.
+                - Eye color MUST BE IDENTICAL.
+                - Outfit style, fabric, and color palette MUST BE IDENTICAL.
+                - Facial features and aesthetic MUST BE IDENTICAL.
             3. BODY MEASUREMENTS & PHYSIQUE: If Body & Stature or Visual Traits specify measurements or curves (e.g. Vòng 1 / bust / breasts, Vòng 2 / waist, Vòng 3 / hips, 3 vòng, cup size, muscular, hourglass, curvy, petite, athletic), translate them accurately into Danbooru / Stable Diffusion tags (e.g., `large breasts`, `medium breasts`, `small breasts`, `slim waist`, `wide hips`, `curvy figure`, `hourglass figure`, `toned body`, `athletic build`, `tall`, `petite`) in the prompt. For AVATAR portrait include upper body / bust tags if applicable, and for FULLBODY include complete waist / hips / physique tags.
             4. AGE & FACIAL YOUTHFULNESS: If the character's 'Age Appearance' is young (e.g. 14-19 years old, high school, teenage, 16 tuổi), you MUST include: `teenage girl (or teenage boy), youthful face, soft youthful features, young, 16 years old (or specific age)`. NEVER depict a teenager with mature 30-year-old adult facial features or severe aging makeup. If adult (20s, 30s), reflect `young adult woman`, `mature adult` accordingly.
             5. ETHNICITY & FACIAL AESTHETICS:
-               - If an Asian heritage is explicitly indicated by nationality, heritage, or lore: reflect specific tags (Korean / Japanese / Chinese / East Asian beauty) with delicate soft facial features and charming subtle expression.
-               - If a non-Asian heritage is specified (Caucasian, Middle Eastern, etc.): depict their heritage faithfully matching the lore.
-               - If heritage is unspecified: prioritize natural aesthetic harmony, expressive features, and world genre without forcing an ethnic label.
-               - Avoid doll-like or artificial looks: depict authentic human skin with visible pores and natural candid lighting.
+                - If an Asian heritage is explicitly indicated by nationality, heritage, or lore: reflect specific tags (Korean / Japanese / Chinese / East Asian beauty) with delicate soft facial features and charming subtle expression.
+                - If a non-Asian heritage is specified (Caucasian, Middle Eastern, etc.): depict their heritage faithfully matching the lore.
+                - If heritage is unspecified: prioritize natural aesthetic harmony, expressive features, and world genre without forcing an ethnic label.
+                - Avoid doll-like or artificial looks: depict authentic human skin with visible pores and natural candid lighting.
             6. NATURAL SKIN & REALISM: NEVER output 'porcelain', 'glass skin', 'plastic', 'anime' for realistic characters. Always prefer 'raw photo, natural skin texture, visible pores, 50mm portrait'.
 
             OUTPUT FORMAT:
             You must output EXACTLY two lines starting with 'AVATAR:' and 'FULLBODY:' containing comma-separated English image prompt tags:
 
             AVATAR: raw photo, masterpiece, best quality, {{coreGenderTag}}, close-up face portrait, face focus, expressive luminous eyes, gentle subtle expression, genuine skin texture, visible pores, <exact hair>, <exact eyes>, <exact face>, <upper outfit details>, natural 50mm photography, authentic lighting, highly detailed, 8k
-            FULLBODY: raw photo, masterpiece, best quality, {{coreGenderTag}}, waist-up standing portrait, dynamic graceful posture, slight 3/4 turn, looking at viewer, <exact same hair>, <exact same eyes>, <exact same face>, <exact same intricate outfit>, luxurious outfit details, authentic natural lighting, genuine skin texture, luminous expressive eyes, delicate face, sharp focus, 8k
+            FULLBODY: raw photo, masterpiece, best quality, {{coreGenderTag}}, full-body standing character, head-to-toe, feet fully visible, entire silhouette visible, dynamic graceful posture, slight 3/4 turn, looking at viewer, <exact same hair>, <exact same eyes>, <exact same face>, <exact same intricate outfit>, luxurious outfit details, authentic natural lighting, genuine skin texture, luminous expressive eyes, delicate face, sharp focus, 8k
 
             Output ONLY these two lines.
+            """;
+    }
+
+    public static string BuildStandeePrompt(
+        string? name,
+        string? title,
+        string? category,
+        string? personality,
+        string? idea,
+        Domain.Enums.WorldGenre? worldGenre = null,
+        Domain.ValueObjects.CharacterVisualIdentity? visualIdentity = null)
+    {
+        var genreDescription = worldGenre switch
+        {
+            Domain.Enums.WorldGenre.HighFantasy => "High Fantasy, Xianxia/Wuxia magical realm, mystical aura, ethereal fantasy aesthetics",
+            Domain.Enums.WorldGenre.UrbanSupernatural => "Modern Urban Supernatural, hidden occult powers, sleek contemporary mystical style",
+            Domain.Enums.WorldGenre.CyberpunkSciFi => "Cyberpunk / Futuristic Sci-Fi, neon lights, high-tech cybernetic accents, futuristic aesthetic",
+            Domain.Enums.WorldGenre.Historical => "Historical Ancient Court / Period Drama, traditional ancient garments, elegant dynasty aesthetics",
+            Domain.Enums.WorldGenre.MundaneSliceOfLife => "Contemporary Slice of Life, modern realistic urban aesthetics, stylish everyday fashion",
+            _ => "Aesthetic cinematic universe"
+        };
+
+        var visualDetails = "";
+        if (visualIdentity != null)
+        {
+            var parts = new List<string>();
+            if (!string.IsNullOrWhiteSpace(visualIdentity.Gender)) parts.Add($"Gender: {visualIdentity.Gender}");
+            if (!string.IsNullOrWhiteSpace(visualIdentity.Hair)) parts.Add($"Hair: {visualIdentity.Hair}");
+            if (!string.IsNullOrWhiteSpace(visualIdentity.Eyes)) parts.Add($"Eyes: {visualIdentity.Eyes}");
+            if (!string.IsNullOrWhiteSpace(visualIdentity.Face)) parts.Add($"Face: {visualIdentity.Face}");
+            if (!string.IsNullOrWhiteSpace(visualIdentity.AgeAppearance)) parts.Add($"Age Appearance: {visualIdentity.AgeAppearance}");
+            if (!string.IsNullOrWhiteSpace(visualIdentity.Skin)) parts.Add($"Skin: {visualIdentity.Skin}");
+            if (!string.IsNullOrWhiteSpace(visualIdentity.Body)) parts.Add($"Body & Stature: {visualIdentity.Body}");
+            if (!string.IsNullOrWhiteSpace(visualIdentity.ClothingStyle)) parts.Add($"Clothing / Outfit: {visualIdentity.ClothingStyle}");
+            if (!string.IsNullOrWhiteSpace(visualIdentity.Accessories)) parts.Add($"Accessories / Distinctive Marks: {visualIdentity.Accessories}");
+            if (!string.IsNullOrWhiteSpace(visualIdentity.Style)) parts.Add($"Visual Style / Aesthetic: {visualIdentity.Style}");
+
+            if (parts.Count > 0)
+            {
+                visualDetails = string.Join("\n- ", parts);
+            }
+        }
+
+        var coreGenderTag = visualIdentity?.ResolvedGender switch
+        {
+            GenderPresentation.Male => "1boy, solo",
+            GenderPresentation.Female => "1girl, solo",
+            _ => "1person, solo"
+        };
+
+        return $"""
+            You are an Elite Character Concept Artist & Visual Designer specializing in Character Standee Key Visuals (Full-Body / Standing Character Design Sheet).
+
+            Character Profile:
+            - Name: {name ?? "Character"}
+            - Title / Role: {title ?? "Hero"}
+            - World Genre: {genreDescription}
+            - Lore / Personality / Biography: {personality ?? idea ?? "Unique fascinating character"}
+            - Specified Visual Identity (CRITICAL - YOU MUST DIRECTLY TRANSLATE THESE ATTRIBUTES INTO THE PROMPT):
+            {(string.IsNullOrWhiteSpace(visualDetails) ? "- Design a distinct, captivating, coherent visual design fitting the lore and title" : $"- {visualDetails}")}
+
+            TASK:
+            Translate the character's exact visual identity into 35 - 50 rich, comma-separated English image prompt tags for a breathtaking full-body / standing character key visual (standee):
+            1. Gender & Core Figure: e.g. {coreGenderTag}, full-body standing character, head-to-toe composition, feet fully visible, entire silhouette visible, dynamic graceful posture, looking at viewer.
+            2. Exact Hair, Eyes, Facial Expression, and Skin matching the Visual Identity attributes.
+            3. Body, Physique & Proportions: faithfully translate body build, silhouette, stature, and curves (e.g. slender build, long legs, athletic).
+            4. Complete Outfit & Accessories: full garments, distinctive accessories, layered fabrics, textures, and footwear matching the character's lore.
+            5. Lighting & Quality: masterpiece, best quality, sharp focus, authentic lighting, highly detailed, 8k uhd.
+
+            Output ONLY the raw comma-separated English prompt tags.
             """;
     }
 }

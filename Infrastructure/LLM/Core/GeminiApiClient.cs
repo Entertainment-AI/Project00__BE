@@ -205,9 +205,29 @@ public sealed class GeminiApiClient
         }
     }
 
-    public async Task<T?> GenerateJsonAsync<T>(
+    public Task<T?> GenerateJsonAsync<T>(
         string systemPrompt,
         string userPrompt,
+        double temperature = 0.75,
+        CancellationToken ct = default) where T : class
+    {
+        return GenerateJsonAsync<T>(
+            systemPrompt,
+            new[]
+            {
+                new
+                {
+                    role = "user",
+                    parts = new object[] { new { text = userPrompt } }
+                }
+            },
+            temperature,
+            ct);
+    }
+
+    public async Task<T?> GenerateJsonAsync<T>(
+        string systemPrompt,
+        IEnumerable<object> contents,
         double temperature = 0.75,
         CancellationToken ct = default) where T : class
     {
@@ -220,14 +240,7 @@ public sealed class GeminiApiClient
             {
                 parts = new[] { new { text = systemPrompt } }
             },
-            contents = new[]
-            {
-                new
-                {
-                    role = "user",
-                    parts = new[] { new { text = userPrompt } }
-                }
-            },
+            contents = contents,
             generationConfig = new
             {
                 temperature = temperature,

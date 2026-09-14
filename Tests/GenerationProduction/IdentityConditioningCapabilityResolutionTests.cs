@@ -85,6 +85,7 @@ public sealed class IdentityConditioningCapabilityResolutionTests
             => Task.FromResult($"https://cdn.project00.ai/rendered/{fileName}");
 
         public Task<bool> DeleteFileAsync(string fileUrl, CancellationToken ct = default) => Task.FromResult(true);
+        public Task<byte[]?> ReadImageBytesAsync(string fileUrl, CancellationToken ct = default) => Task.FromResult<byte[]?>(null);
     }
 
     private sealed class MockInputImageService : IComfyUIInputImageService
@@ -122,7 +123,7 @@ public sealed class IdentityConditioningCapabilityResolutionTests
             Eyes: "crimson eyes",
             Style: "Anime",
             VisualStyle: VisualStyle.Anime,
-            CanonicalReferenceUrl: canonicalReferenceUrl
+            CanonicalFaceReferenceUrl: canonicalReferenceUrl
         );
 
         return VisualSnapshot.Create(
