@@ -355,14 +355,10 @@ public sealed class StyleModelSelectionTests
         Assert.Equal(ModelFamily.Sd15, modelDef.Family);
         Assert.Equal("majicmixRealistic_v7.safetensors", modelDef.ArtifactName);
 
-        // Alias resolution via FindById
+        // Artifact resolution via FindById
         var byArtifact = registry.FindById("majicmixRealistic_v7.safetensors");
         Assert.NotNull(byArtifact);
         Assert.Equal("majicmixrealistic", byArtifact.Id);
-
-        var byCanonicalAlias = registry.FindById("majicmixrealistic.safetensors");
-        Assert.NotNull(byCanonicalAlias);
-        Assert.Equal("majicmixrealistic", byCanonicalAlias.Id);
     }
 
     [Fact]

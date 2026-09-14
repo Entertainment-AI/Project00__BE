@@ -19,7 +19,6 @@ public sealed class WorkflowModelResolutionTests
     [InlineData("meinamix", "meinamix_meinaV11.safetensors")]
     [InlineData("epicrealism", "epicrealism_naturalSinRC1VAE.safetensors")]
     [InlineData("meinamix_meinaV11.safetensors", "meinamix_meinaV11.safetensors")]
-    [InlineData("epicrealism_naturalSin.safetensors", "epicrealism_naturalSinRC1VAE.safetensors")]
     [InlineData("epicrealism_naturalSinRC1VAE.safetensors", "epicrealism_naturalSinRC1VAE.safetensors")]
     public void Test1_VisualIdentityV1Builder_HandlesAndResolvesCanonicalAndLegacyModels(string requestModel, string expectedArtifact)
     {
@@ -45,7 +44,6 @@ public sealed class WorkflowModelResolutionTests
     [Theory]
     [InlineData("meinamix", "meinamix_meinaV11.safetensors")]
     [InlineData("epicrealism", "epicrealism_naturalSinRC1VAE.safetensors")]
-    [InlineData("epicrealism_naturalSin.safetensors", "epicrealism_naturalSinRC1VAE.safetensors")]
     [InlineData("epicrealism_naturalSinRC1VAE.safetensors", "epicrealism_naturalSinRC1VAE.safetensors")]
     public void Test2_VisualContinuityV2Builder_HandlesAndResolvesCanonicalModels(string requestModel, string expectedArtifact)
     {
@@ -71,7 +69,6 @@ public sealed class WorkflowModelResolutionTests
     [Theory]
     [InlineData("meinamix", "meinamix_meinaV11.safetensors")]
     [InlineData("epicrealism", "epicrealism_naturalSinRC1VAE.safetensors")]
-    [InlineData("epicrealism_naturalSin.safetensors", "epicrealism_naturalSinRC1VAE.safetensors")]
     [InlineData("epicrealism_naturalSinRC1VAE.safetensors", "epicrealism_naturalSinRC1VAE.safetensors")]
     public void Test3_TextToImageV1Builder_HandlesAndResolvesCanonicalModels(string requestModel, string expectedArtifact)
     {

@@ -174,7 +174,7 @@ public sealed class ComfyUIImageGenerationService : IImageGenerationService
             PromptId = promptId,
             DurationMs = stopwatch.ElapsedMilliseconds,
             Seed = seedUsed,
-            Model = request.Model ?? "meinamix_meinaV11.safetensors",
+            Model = request.Model ?? string.Empty,
             Workflow = builder?.WorkflowName ?? targetWorkflow,
             WorkflowVersion = builder?.WorkflowVersion ?? targetVersion,
             Width = request.Width,

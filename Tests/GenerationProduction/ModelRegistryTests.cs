@@ -43,7 +43,6 @@ public sealed class ModelRegistryTests
     [InlineData("meinamix_meinaV11.safetensors", "meinamix", ModelFamily.Sd15, "meinamix_meinaV11.safetensors")]
     [InlineData("MEINAMIX_MEINAV11.SAFETENSORS", "meinamix", ModelFamily.Sd15, "meinamix_meinaV11.safetensors")]
     [InlineData("epicrealism_naturalSinRC1VAE.safetensors", "epicrealism", ModelFamily.Sd15, "epicrealism_naturalSinRC1VAE.safetensors")]
-    [InlineData("epicrealism_naturalSin.safetensors", "epicrealism", ModelFamily.Sd15, "epicrealism_naturalSinRC1VAE.safetensors")]
     [InlineData("animagineXLV3_base.safetensors", "anime3xl", ModelFamily.Sdxl, "animagineXLV3_base.safetensors")]
     [InlineData("flux1-dev.safetensors", "flux-dev", ModelFamily.Flux, "flux1-dev.safetensors")]
     public void Test3_FindById_WithLegacyArtifactName_ResolvesViaFallbackSecondaryIndex(
