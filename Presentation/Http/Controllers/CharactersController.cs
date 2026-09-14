@@ -129,12 +129,22 @@ public sealed class CharactersController : ControllerBase
     }
 
     /// <summary>
-    /// Generates a stunning anime avatar image using AI
+    /// Generates a stunning anime avatar image using AI (canonical face anchor)
     /// </summary>
     [HttpPost("generate-avatar")]
     public async Task<IActionResult> GenerateAvatar([FromBody] GenerateAvatarRequest request, CancellationToken ct)
     {
         var result = await _sender.Send(new Application.Features.Characters.Commands.GenerateAvatar.GenerateAvatarCommand(request), ct);
+        return result.ToActionResult();
+    }
+
+    /// <summary>
+    /// Generates a full-body standee image for a character (candidate body anchor)
+    /// </summary>
+    [HttpPost("generate-standee")]
+    public async Task<IActionResult> GenerateStandee([FromBody] GenerateStandeeRequest request, CancellationToken ct)
+    {
+        var result = await _sender.Send(new Application.Features.Characters.Commands.GenerateStandee.GenerateStandeeCommand(request), ct);
         return result.ToActionResult();
     }
 

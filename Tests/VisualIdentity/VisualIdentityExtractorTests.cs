@@ -71,36 +71,58 @@ public sealed class VisualIdentityExtractorTests
     }
 
     [Fact]
-    public void ToCharacterVisualIdentity_Maps_All_Extracted_Fields_Faithfully()
+    public void ConfirmedVisualIdentityDto_Maps_All_Confirmed_Fields_To_Domain_Entity()
     {
-        var extracted = new VisualIdentityExtractionResult(
-            Face: new ExtractedFace("oval", "vivid crimson red almond eyes", "soft delicate chin"),
-            Hair: new ExtractedHair("silver-white", "straight with side bangs", "waist-length"),
-            Skin: new ExtractedSkin("pale porcelain"),
-            Body: new ExtractedBody("slender build", "long-legged with narrow waist", "graceful silhouette"),
+        var confirmed = new ConfirmedVisualIdentityDto(
+            Gender: "Female",
+            Face: "oval face, vivid crimson red almond eyes, soft delicate chin",
+            Hair: "waist-length silver-white straight hair",
+            Eyes: "vivid crimson red almond eyes",
+            Skin: "pale porcelain",
+            Body: "slender build, long-legged appearance",
+            AgeAppearance: "young adult",
+            ClothingStyle: "dark fantasy armor",
+            Accessories: "silver necklace",
+            OriginalReferenceUrl: "https://cdn.project00.ai/original_upload.png",
+            CanonicalReferenceUrl: "https://cdn.project00.ai/face_ref.png",
+            FullBodyUrl: "https://cdn.project00.ai/fullbody_ref.png",
             SignatureFeatures: new List<string> { "curved black and red dragon horns", "pointy ears" },
-            VisualTraits: "dark fantasy warrior aesthetic",
-            ObservableGender: "Female"
+            Style: "Anime"
         );
 
-        var identity = extracted.ToCharacterVisualIdentity(
-            canonicalReferenceUrl: "https://cdn.project00.ai/face_ref.png",
-            fullBodyUrl: "https://cdn.project00.ai/fullbody_ref.png",
-            style: "Anime"
-        );
+        var identity = confirmed.ToDomainEntity();
 
         Assert.Equal("Female", identity.Gender);
         Assert.Equal("vivid crimson red almond eyes", identity.Eyes);
-        Assert.Equal("waist-length silver-white straight with side bangs hair", identity.Hair);
+        Assert.Equal("waist-length silver-white straight hair", identity.Hair);
         Assert.Equal("pale porcelain", identity.Skin);
-        Assert.Contains("slender build", identity.Body);
-        Assert.Contains("long-legged with narrow waist", identity.Body);
-        Assert.Contains("graceful silhouette", identity.Body);
+        Assert.Equal("slender build, long-legged appearance", identity.Body);
+        Assert.Equal("https://cdn.project00.ai/original_upload.png", identity.OriginalReferenceUrl);
         Assert.Equal("https://cdn.project00.ai/face_ref.png", identity.CanonicalReferenceUrl);
         Assert.Equal("https://cdn.project00.ai/fullbody_ref.png", identity.FullBodyUrl);
         Assert.Equal(2, identity.SignatureFeatures?.Count);
         Assert.Equal("curved black and red dragon horns", identity.SignatureFeatures?[0].Name);
         Assert.Equal(FeaturePersistence.EveryTurn, identity.SignatureFeatures?[0].Persistence);
+    }
+
+    [Fact]
+    public void ExtractionResult_Allows_Uncertainty_With_Null_Fields()
+    {
+        // For a close-up headshot where body is not visible
+        var result = new VisualIdentityExtractionResult(
+            Face: new ExtractedFace("round", "emerald green eyes", null),
+            Hair: new ExtractedHair("auburn", "curly", "shoulder-length"),
+            Skin: new ExtractedSkin("freckled fair"),
+            Body: new ExtractedBody(null, null, null), // Uncertain / not visible
+            SignatureFeatures: null,
+            ObservableGender: "Female"
+        );
+
+        Assert.NotNull(result.Face);
+        Assert.Null(result.Body?.Build);
+        Assert.Null(result.Body?.Proportions);
+        Assert.Null(result.Body?.Silhouette);
+        Assert.Null(result.SignatureFeatures);
     }
 
     [Fact]
@@ -168,11 +190,10 @@ public sealed class VisualIdentityExtractorTests
     }
 
     [Fact]
-    public async Task GenerateAvatarAsync_With_ReferenceImageUrl_Conditions_Both_Avatar_And_FullBody_On_VisualIdentity_Workflow()
+    public async Task GenerateAvatarAsync_With_ReferenceImageUrl_Conditions_Only_Avatar_As_Independent_Job()
     {
         var imageService = new RecordingImageGenerationService();
 
-        // Create LLMService with stub image service
         var config = new Microsoft.Extensions.Configuration.ConfigurationBuilder().Build();
         var httpClient = new System.Net.Http.HttpClient();
         var geminiClient = new Infrastructure.LLM.Core.GeminiApiClient(
@@ -197,9 +218,9 @@ public sealed class VisualIdentityExtractorTests
         var response = await llmService.GenerateAvatarAsync(request, CancellationToken.None);
 
         Assert.NotNull(response);
-        Assert.Equal(2, imageService.RecordedRequests.Count);
+        // EXACTLY 1 generation request for Avatar (decoupled from Standee!)
+        Assert.Single(imageService.RecordedRequests);
 
-        // Avatar request MUST use VisualIdentity conditioned on ReferenceImageUrl
         var avatarReq = imageService.RecordedRequests[0];
         Assert.Equal("VisualIdentity", avatarReq.Workflow);
         Assert.Equal(1, avatarReq.WorkflowVersion);
@@ -208,17 +229,49 @@ public sealed class VisualIdentityExtractorTests
         Assert.Equal(512, avatarReq.Height);
         Assert.Contains("\"weight\":0.65", avatarReq.ParametersJson!);
 
-        // FullBody request MUST use VisualIdentity conditioned on Avatar and with height 768
-        var fullBodyReq = imageService.RecordedRequests[1];
-        Assert.Equal("VisualIdentity", fullBodyReq.Workflow);
-        Assert.Equal(1, fullBodyReq.WorkflowVersion);
-        Assert.Equal("https://cdn.project00.ai/gen_avatar.png", fullBodyReq.ReferenceImageUrl);
-        Assert.Equal(512, fullBodyReq.Width);
-        Assert.Equal(768, fullBodyReq.Height);
-        Assert.Contains("\"weight\":0.45", fullBodyReq.ParametersJson!);
-
-        // Output URLs
         Assert.Equal("https://cdn.project00.ai/gen_avatar.png", response.AvatarUrl);
-        Assert.Equal("https://cdn.project00.ai/gen_fullbody.png", response.FullBodyUrl);
+        Assert.Null(response.FullBodyUrl); // Decoupled!
+    }
+
+    [Fact]
+    public async Task GenerateStandeeAsync_Conditions_Standee_Independently()
+    {
+        var imageService = new RecordingImageGenerationService();
+
+        var config = new Microsoft.Extensions.Configuration.ConfigurationBuilder().Build();
+        var httpClient = new System.Net.Http.HttpClient();
+        var geminiClient = new Infrastructure.LLM.Core.GeminiApiClient(
+            httpClient,
+            config,
+            NullLogger<Infrastructure.LLM.Core.GeminiApiClient>.Instance);
+
+        var promptCompiler = new Infrastructure.LLM.Prompts.PromptCompiler();
+        var llmService = new LLMService(
+            geminiClient,
+            imageService,
+            promptCompiler);
+
+        var standeeRequest = new GenerateStandeeRequest(
+            name: "Lyra",
+            title: "Dragon Sovereign",
+            category: "Fantasy",
+            avatarUrl: "https://cdn.project00.ai/gen_avatar.png",
+            referenceImageUrl: "https://cdn.project00.ai/user_uploaded_reference.png"
+        );
+
+        var response = await llmService.GenerateStandeeAsync(standeeRequest, CancellationToken.None);
+
+        Assert.NotNull(response);
+        Assert.Single(imageService.RecordedRequests);
+
+        var standeeReq = imageService.RecordedRequests[0];
+        Assert.Equal("VisualIdentity", standeeReq.Workflow);
+        Assert.Equal(1, standeeReq.WorkflowVersion);
+        Assert.Equal("https://cdn.project00.ai/gen_avatar.png", standeeReq.ReferenceImageUrl);
+        Assert.Equal(512, standeeReq.Width);
+        Assert.Equal(768, standeeReq.Height);
+        Assert.Contains("\"weight\":0.45", standeeReq.ParametersJson!);
+
+        Assert.Equal("https://cdn.project00.ai/gen_fullbody.png", response.StandeeUrl);
     }
 }

@@ -305,12 +305,10 @@ public sealed class LLMService : ILLMService
         const string enhancedNegativePrompt = "2girls, 2boys, multiple people, group, crowd, duo, couple, 2persons, extra person, deformed horns, bad anatomy, bad hands, missing fingers, extra digits, cropped, watermark, blurry, low quality, mutated, text, error, stiff pose, flat lighting, dull colors, bad face, deformed eyes, crossed eyes";
 
         string avatarUrl;
-        string fullBodyUrl;
 
         if (!string.IsNullOrWhiteSpace(request.ReferenceImageUrl))
         {
-            // When a visual reference is provided:
-            // Step 1: Generate Close-up Face Avatar conditioned on the Reference Image via VisualIdentity (IP-Adapter high face fidelity)
+            // When a visual reference is provided: Generate Close-up Face Avatar conditioned on the Reference Image via VisualIdentity
             var avatarRequest = new ImageGenerationRequest(
                 Prompt: cleanAvatarPrompt,
                 Width: 512,
@@ -324,25 +322,10 @@ public sealed class LLMService : ILLMService
             );
 
             avatarUrl = await _imageService.GenerateImageAsync(avatarRequest, ct);
-
-            // Step 2: Generate Full-Body Standee conditioned on the Face Avatar and Reference Image (preserving physique and artistic posture)
-            var fullBodyRequest = new ImageGenerationRequest(
-                Prompt: cleanFullBodyPrompt,
-                Width: 512,
-                Height: 768,
-                Seed: generatedSeed,
-                ReferenceImageUrl: avatarUrl,
-                ParametersJson: "{\"ipAdapter\":{\"weight\":0.45,\"endAt\":0.65}}",
-                NegativePrompt: enhancedNegativePrompt,
-                Workflow: "VisualIdentity",
-                WorkflowVersion: 1
-            );
-
-            fullBodyUrl = await _imageService.GenerateImageAsync(fullBodyRequest, ct);
         }
         else
         {
-            // Step 1: Generate Close-up Face Avatar via TextToImage
+            // When no reference is provided: Generate Close-up Face Avatar via TextToImage
             var avatarRequest = new ImageGenerationRequest(
                 Prompt: cleanAvatarPrompt,
                 Width: 512,
@@ -354,15 +337,104 @@ public sealed class LLMService : ILLMService
             );
 
             avatarUrl = await _imageService.GenerateImageAsync(avatarRequest, ct);
+        }
 
-            // Step 2: Generate Full-Body Standee via VisualIdentity Workflow (IP-Adapter conditioned on the Avatar with optimal artistic freedom)
+        return new GenerateAvatarResponse(avatarUrl, cleanAvatarPrompt, avatarUrl, null, null);
+    }
+
+    public async Task<GenerateStandeeResponse> GenerateStandeeAsync(
+        GenerateStandeeRequest request,
+        CancellationToken ct = default)
+    {
+        var dualSystemPrompt = CharacterGenerationPrompts.BuildDualImagePrompt(
+            request.Name,
+            request.Title,
+            request.Category,
+            request.PersonalityPrompt,
+            request.Idea,
+            request.WorldGenre,
+            request.VisualIdentity);
+
+        string cleanFullBodyPrompt = "";
+
+        try
+        {
+            var rawDualResult = await _geminiClient.GenerateTextAsync(
+                systemPrompt: dualSystemPrompt,
+                contents: new[]
+                {
+                    new
+                    {
+                        role = "user",
+                        parts = new[] { new { text = "Generate the synchronized AVATAR and FULLBODY prompt tags now." } }
+                    }
+                },
+                temperature: 0.7,
+                maxOutputTokens: 250,
+                ct: ct);
+
+            if (!string.IsNullOrWhiteSpace(rawDualResult))
+            {
+                var lines = rawDualResult.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+                foreach (var line in lines)
+                {
+                    var trimmed = line.Trim();
+                    if (trimmed.StartsWith("FULLBODY:", StringComparison.OrdinalIgnoreCase))
+                    {
+                        cleanFullBodyPrompt = trimmed["FULLBODY:".Length..].Trim();
+                    }
+                }
+            }
+        }
+        catch
+        {
+            // fallback if Gemini prompt tags generation fails
+        }
+
+        var isMale = request.VisualIdentity?.Gender?.Equals("Male", StringComparison.OrdinalIgnoreCase) == true;
+        var genderTag = isMale ? "1boy" : "1girl";
+
+        cleanFullBodyPrompt = cleanFullBodyPrompt
+            .Replace("1girl/1boy", genderTag)
+            .Replace("<exact same hair>", "")
+            .Replace("<exact same eyes>", "")
+            .Replace("<exact same face>", "")
+            .Replace("<exact same intricate outfit>", "");
+
+        if (string.IsNullOrWhiteSpace(cleanFullBodyPrompt))
+        {
+            cleanFullBodyPrompt = $"masterpiece, best quality, {genderTag}, solo, waist-up standing portrait, dynamic graceful posture, slight 3/4 turn, looking at viewer, delicate face, expressive luminous eyes, vibrant colors, ethereal magical lighting, cinematic atmospheric glow, soft rim light, glowing floating particles, soft painterly aesthetic, dramatic lighting, 8k";
+        }
+
+        if (!cleanFullBodyPrompt.Contains("solo", StringComparison.OrdinalIgnoreCase))
+        {
+            cleanFullBodyPrompt = $"masterpiece, best quality, {genderTag}, solo, waist-up standing portrait, dynamic graceful posture, sharp focus, " + cleanFullBodyPrompt;
+        }
+
+        if (!cleanFullBodyPrompt.Contains("ethereal", StringComparison.OrdinalIgnoreCase))
+        {
+            cleanFullBodyPrompt += ", slight 3/4 turn, ethereal magical lighting, cinematic atmospheric glow, soft rim light, glowing floating particles, luminous eyes, delicate face, soft painterly aesthetic, dramatic lighting, masterpiece, best quality";
+        }
+
+        var generatedSeed = Random.Shared.Next(1, int.MaxValue);
+        const string enhancedNegativePrompt = "2girls, 2boys, multiple people, group, crowd, duo, couple, 2persons, extra person, deformed horns, bad anatomy, bad hands, missing fingers, extra digits, cropped, watermark, blurry, low quality, mutated, text, error, stiff pose, flat lighting, dull colors, bad face, deformed eyes, crossed eyes";
+
+        // Reference candidate priority: Avatar Face Anchor > Original Reference Image
+        var referenceAnchor = !string.IsNullOrWhiteSpace(request.AvatarUrl)
+            ? request.AvatarUrl
+            : request.ReferenceImageUrl;
+
+        string fullBodyUrl;
+
+        if (!string.IsNullOrWhiteSpace(referenceAnchor))
+        {
             var fullBodyRequest = new ImageGenerationRequest(
                 Prompt: cleanFullBodyPrompt,
                 Width: 512,
                 Height: 768,
                 Seed: generatedSeed,
-                ReferenceImageUrl: avatarUrl,
-                ParametersJson: "{\"ipAdapter\":{\"weight\":0.38,\"endAt\":0.60}}",
+                ReferenceImageUrl: referenceAnchor,
+                ParametersJson: "{\"ipAdapter\":{\"weight\":0.45,\"endAt\":0.65}}",
                 NegativePrompt: enhancedNegativePrompt,
                 Workflow: "VisualIdentity",
                 WorkflowVersion: 1
@@ -370,8 +442,22 @@ public sealed class LLMService : ILLMService
 
             fullBodyUrl = await _imageService.GenerateImageAsync(fullBodyRequest, ct);
         }
+        else
+        {
+            var fullBodyRequest = new ImageGenerationRequest(
+                Prompt: cleanFullBodyPrompt,
+                Width: 512,
+                Height: 768,
+                Seed: generatedSeed,
+                NegativePrompt: enhancedNegativePrompt,
+                Workflow: "TextToImage",
+                WorkflowVersion: 1
+            );
 
-        return new GenerateAvatarResponse(avatarUrl, cleanAvatarPrompt, avatarUrl, fullBodyUrl, cleanFullBodyPrompt);
+            fullBodyUrl = await _imageService.GenerateImageAsync(fullBodyRequest, ct);
+        }
+
+        return new GenerateStandeeResponse(fullBodyUrl, cleanFullBodyPrompt, fullBodyUrl);
     }
 
     private async Task<string> CropFaceAvatarFromMasterAsync(string masterImageUrl, CancellationToken ct = default)

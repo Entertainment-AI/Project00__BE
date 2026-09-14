@@ -11,42 +11,41 @@ public sealed class GeminiVisualIdentityExtractor : IVisualIdentityExtractor
     private readonly ILogger<GeminiVisualIdentityExtractor> _logger;
 
     private const string SystemPrompt =
-@"You are an authoritative, objective visual identity extraction system for a character AI engine.
-Your sole mission is to observe the uploaded reference image and extract the subject's persistent visual traits into structured JSON.
+@"You are an authoritative, evidence-bound visual identity extraction system for a character AI engine.
+Your sole mission is to observe the uploaded reference image and extract the subject's persistent visual traits into structured JSON based strictly on observable visual evidence.
 
-CRITICAL ZERO-HALLUCINATION INVARIANTS:
-1. OBJECTIVE OBSERVATION ONLY: Describe strictly what is visibly observable in the image.
-2. NO EXACT MEASUREMENTS: NEVER invent numbers, heights (e.g., '170cm'), weights, clothing sizes, or cup sizes. Use descriptive visual proportions only (e.g., 'slender build', 'long legs', 'moderate shoulders').
-3. NO UNOBSERVABLE ATTRIBUTES: Do NOT guess exact age or specific real-world ethnicity.
-4. PARTIALLY VISIBLE OR HEADSHOT CROPS: If the image is a close-up portrait, headshot, or cropped such that body proportions are not visible, set all Body fields to null. Never hallucinate body traits that cannot be seen.
-5. SIGNATURE TRAITS: Identify any permanent, distinctive features such as horns, pointed ears, prominent beauty marks, distinct bangs, scars, or fantasy traits.
+CRITICAL EVIDENCE-BOUND INVARIANTS:
+1. EVIDENCE-BOUND OBSERVATION ONLY: Report strictly what is visually observable in the image. Never infer unproven facts.
+2. NO EXACT MEASUREMENTS: NEVER invent numerical measurements, heights (e.g. '170cm'), weights, clothing sizes, or cup sizes. Use descriptive visual proportions only (e.g., 'slender build', 'long-legged appearance', 'moderate shoulders').
+3. NO UNOBSERVABLE ATTRIBUTES: Do NOT guess exact numerical age or specific real-world ethnicity.
+4. VISUAL UNCERTAINTY & INSUFFICIENT EVIDENCE: If visual evidence is insufficient (e.g. close-up portrait or headshot where body silhouette/build is not visible), set the corresponding fields to null. Never hallucinate traits without direct visual evidence.
+5. SIGNATURE TRAITS: Identify any distinctive permanent visual traits observable, such as horns, pointed ears, distinct beauty marks, characteristic bangs, or scars.
 
 OUTPUT FORMAT:
-You must output a single JSON object with this exact structure:
+You must output a single JSON object matching this exact structure:
 {
   ""face"": {
-    ""shape"": ""oval / round / angular / delicate"",
-    ""eyes"": ""color and observable shape, e.g., vivid red expressive almond eyes"",
-    ""features"": ""notable facial traits, e.g., soft chin, high cheekbones, delicate nose""
+    ""shape"": ""e.g., oval / round / angular / delicate (or null if obscured)"",
+    ""eyes"": ""color and observable shape, e.g., vivid crimson red almond eyes"",
+    ""features"": ""notable observable facial traits, e.g., delicate nose, soft chin""
   },
   ""hair"": {
     ""color"": ""exact observable color, e.g., silver-white / jet black / golden blonde"",
-    ""style"": ""e.g., straight with side-swept bangs / wavy / twin tails"",
+    ""style"": ""e.g., straight with bangs / wavy / twin tails"",
     ""length"": ""e.g., waist-length / shoulder-length / short / cropped""
   },
   ""skin"": {
-    ""complexion"": ""e.g., pale porcelain / fair with cool undertones / warm tan / smooth olive""
+    ""complexion"": ""e.g., pale porcelain / fair with cool undertones / warm tan""
   },
   ""body"": {
-    ""build"": ""e.g., slender / athletic / muscular / petite (or null if not visible)"",
-    ""proportions"": ""e.g., long-legged / balanced proportions / narrow waist (or null if not visible)"",
-    ""silhouette"": ""e.g., graceful hourglass / linear slender / broad shoulders (or null if not visible)""
+    ""build"": ""e.g., slender / athletic / petite (or null if body is not visible)"",
+    ""proportions"": ""e.g., long-legged appearance / narrow waist (or null if not visible)"",
+    ""silhouette"": ""e.g., graceful / linear / hourglass (or null if not visible)""
   },
   ""signatureFeatures"": [
-    ""array of distinct permanent visual features, e.g., curved black and red demon horns, small beauty mark below left eye""
+    ""array of distinct permanent visual features, e.g., curved black and red horns, small beauty mark below left eye""
   ],
-  ""visualTraits"": ""concise aesthetic and stylistic impression, e.g., dark fantasy warrior aesthetic"",
-  ""observableGender"": ""Female / Male / Androgynous""
+  ""observableGender"": ""Female / Male / Androgynous (or null if ambiguous)""
 }";
 
     public GeminiVisualIdentityExtractor(
@@ -89,7 +88,7 @@ You must output a single JSON object with this exact structure:
                     },
                     new
                     {
-                        text = "Observe this image with extreme precision and extract the character's visual identity into the required JSON schema."
+                        text = "Observe this image with extreme evidence-bound precision and extract the observable visual identity into the required JSON schema."
                     }
                 }
             }
@@ -100,7 +99,7 @@ You must output a single JSON object with this exact structure:
             var result = await _geminiClient.GenerateJsonAsync<VisualIdentityExtractionResult>(
                 systemPrompt: SystemPrompt,
                 contents: contents,
-                temperature: 0.2, // Low temperature for maximum objective consistency
+                temperature: 0.2,
                 ct: ct);
 
             if (result == null)

@@ -156,3 +156,46 @@ public record GenerateAvatarResponse(
     string? FullBodyUrl = null,
     string? FullBodyPrompt = null
 );
+
+public record GenerateStandeeRequest
+{
+    public string? Name { get; init; }
+    public string? Title { get; init; }
+    public string? Category { get; init; }
+    public string? PersonalityPrompt { get; init; }
+    public string? Idea { get; init; }
+    public WorldGenre? WorldGenre { get; init; }
+    public CharacterVisualIdentity? VisualIdentity { get; init; }
+    public string? ReferenceImageUrl { get; init; }
+    public string? AvatarUrl { get; init; }
+
+    public GenerateStandeeRequest() { }
+
+    public GenerateStandeeRequest(
+        string? name = null,
+        string? title = null,
+        string? category = null,
+        string? personalityPrompt = null,
+        string? idea = null,
+        WorldGenre? worldGenre = null,
+        CharacterVisualIdentity? visualIdentity = null,
+        string? referenceImageUrl = null,
+        string? avatarUrl = null)
+    {
+        Name = name;
+        Title = title;
+        Category = category;
+        PersonalityPrompt = personalityPrompt;
+        Idea = idea;
+        WorldGenre = worldGenre;
+        VisualIdentity = visualIdentity;
+        ReferenceImageUrl = referenceImageUrl;
+        AvatarUrl = avatarUrl;
+    }
+}
+
+public record GenerateStandeeResponse(
+    string ImageUrl,
+    string RevisedPrompt,
+    string? StandeeUrl = null
+);

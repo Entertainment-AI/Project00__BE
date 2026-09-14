@@ -15,6 +15,7 @@ public sealed record CharacterVisualIdentity(
     string? VisualTraits = null,
     string? CanonicalReferenceUrl = null,
     string? FullBodyUrl = null,
+    string? OriginalReferenceUrl = null,
     GenderPresentation Presentation = GenderPresentation.Unspecified,
     IReadOnlyList<SignatureFeature>? SignatureFeatures = null,
     string? Style = null,

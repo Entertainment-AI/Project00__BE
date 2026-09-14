@@ -25,39 +25,41 @@ public sealed record ExtractedBody(
     string? Silhouette = null
 );
 
+/// <summary>
+/// Structured, evidence-bound visual identity observation suggested by AI.
+/// Strictly a suggestion DTO for client review and editing; does NOT mutate domain entities.
+/// </summary>
 public sealed record VisualIdentityExtractionResult(
     ExtractedFace? Face = null,
     ExtractedHair? Hair = null,
     ExtractedSkin? Skin = null,
     ExtractedBody? Body = null,
     List<string>? SignatureFeatures = null,
-    string? VisualTraits = null,
     string? ObservableGender = null
+);
+
+/// <summary>
+/// Confirmed visual identity payload submitted by the user after reviewing and editing the suggested identity.
+/// </summary>
+public sealed record ConfirmedVisualIdentityDto(
+    string? Gender = null,
+    string? Face = null,
+    string? Hair = null,
+    string? Eyes = null,
+    string? Skin = null,
+    string? Body = null,
+    string? AgeAppearance = null,
+    string? ClothingStyle = null,
+    string? Accessories = null,
+    string? OriginalReferenceUrl = null,
+    string? CanonicalReferenceUrl = null,
+    string? FullBodyUrl = null,
+    List<string>? SignatureFeatures = null,
+    string? Style = null
 )
 {
-    public CharacterVisualIdentity ToCharacterVisualIdentity(
-        string? canonicalReferenceUrl = null,
-        string? fullBodyUrl = null,
-        string? style = null)
+    public CharacterVisualIdentity ToDomainEntity()
     {
-        var hairTokens = new List<string>();
-        if (!string.IsNullOrWhiteSpace(Hair?.Length)) hairTokens.Add(Hair.Length);
-        if (!string.IsNullOrWhiteSpace(Hair?.Color)) hairTokens.Add(Hair.Color);
-        if (!string.IsNullOrWhiteSpace(Hair?.Style)) hairTokens.Add(Hair.Style);
-        if (hairTokens.Count > 0) hairTokens.Add("hair");
-        var compiledHair = hairTokens.Count > 0 ? string.Join(" ", hairTokens) : null;
-
-        var faceTokens = new List<string>();
-        if (!string.IsNullOrWhiteSpace(Face?.Shape)) faceTokens.Add($"{Face.Shape} face");
-        if (!string.IsNullOrWhiteSpace(Face?.Features)) faceTokens.Add(Face.Features);
-        var compiledFace = faceTokens.Count > 0 ? string.Join(", ", faceTokens) : null;
-
-        var bodyTokens = new List<string>();
-        if (!string.IsNullOrWhiteSpace(Body?.Build)) bodyTokens.Add(Body.Build);
-        if (!string.IsNullOrWhiteSpace(Body?.Proportions)) bodyTokens.Add(Body.Proportions);
-        if (!string.IsNullOrWhiteSpace(Body?.Silhouette)) bodyTokens.Add(Body.Silhouette);
-        var compiledBody = bodyTokens.Count > 0 ? string.Join(", ", bodyTokens) : null;
-
         List<SignatureFeature>? signatureFeatures = null;
         if (SignatureFeatures != null && SignatureFeatures.Count > 0)
         {
@@ -68,17 +70,20 @@ public sealed record VisualIdentityExtractionResult(
         }
 
         return new CharacterVisualIdentity(
-            Gender: ObservableGender,
-            Face: compiledFace,
-            Hair: compiledHair,
-            Eyes: Face?.Eyes,
-            Skin: Skin?.Complexion,
-            Body: compiledBody,
-            VisualTraits: VisualTraits,
-            CanonicalReferenceUrl: canonicalReferenceUrl,
-            FullBodyUrl: fullBodyUrl,
+            Gender: Gender,
+            Face: Face,
+            Hair: Hair,
+            Eyes: Eyes,
+            Skin: Skin,
+            Body: Body,
+            AgeAppearance: AgeAppearance,
+            ClothingStyle: ClothingStyle,
+            Accessories: Accessories,
+            OriginalReferenceUrl: OriginalReferenceUrl,
+            CanonicalReferenceUrl: CanonicalReferenceUrl,
+            FullBodyUrl: FullBodyUrl,
             SignatureFeatures: signatureFeatures,
-            Style: style
+            Style: Style
         );
     }
 }
