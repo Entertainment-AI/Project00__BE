@@ -20,6 +20,8 @@ namespace Tests;
 
 public sealed class VisualIdentityInvariantTests
 {
+    private static readonly IModelRegistry Registry = new ConfigurationModelRegistry();
+
     private sealed class CountingImageService : IImageGenerationService
     {
         public int CallCount { get; private set; } = 0;
@@ -260,7 +262,7 @@ public sealed class VisualIdentityInvariantTests
         var comfyClient = new ComfyUIClient(httpClient, config, NullLogger<ComfyUIClient>.Instance);
 
         // Server only has Workflow V1 registered
-        var workflowBuilders = new IComfyUIWorkflowBuilder[] { new VisualIdentityWorkflowV1Builder() };
+        var workflowBuilders = new IComfyUIWorkflowBuilder[] { new VisualIdentityWorkflowV1Builder(Registry) };
         var service = new ComfyUIImageGenerationService(comfyClient, storage, inputService, workflowBuilders, config, NullLogger<ComfyUIImageGenerationService>.Instance);
 
         // Request demands VisualIdentity V99
@@ -332,7 +334,7 @@ public sealed class VisualIdentityInvariantTests
         );
 
         var compiledPositive = visualCompiler.CompileScenePrompt(snapshot);
-        var workflowBuilder = new VisualIdentityWorkflowV1Builder();
+        var workflowBuilder = new VisualIdentityWorkflowV1Builder(Registry);
 
         var request = ImageGenerationRequest.FromSnapshot(snapshot, compiledPositive);
         var workflow = workflowBuilder.BuildWorkflow(request, "canonical_face_ref.png");
@@ -791,7 +793,7 @@ public sealed class VisualIdentityInvariantTests
         var config = new ConfigurationBuilder().Build();
         var storage = new ComfyUIImageGenerationIntegrationTests_InMemoryStorageService();
         var inputService = new MockInputImageService();
-        var workflowBuilders = new IComfyUIWorkflowBuilder[] { new VisualIdentityWorkflowV1Builder() };
+        var workflowBuilders = new IComfyUIWorkflowBuilder[] { new VisualIdentityWorkflowV1Builder(Registry) };
         var comfyService = new ComfyUIImageGenerationService(mockComfyClient, storage, inputService, workflowBuilders, config, NullLogger<ComfyUIImageGenerationService>.Instance);
 
         var visualCompiler = new VisualPromptCompiler();
@@ -826,7 +828,7 @@ public sealed class VisualIdentityInvariantTests
         var mockComfyClient = new MockComfyUIClient();
         var storage = new ComfyUIImageGenerationIntegrationTests_InMemoryStorageService();
         var inputService = new ComfyUIInputImageService(new HttpClient(), config, NullLogger<ComfyUIInputImageService>.Instance);
-        var workflowBuilders = new IComfyUIWorkflowBuilder[] { new VisualIdentityWorkflowV1Builder() };
+        var workflowBuilders = new IComfyUIWorkflowBuilder[] { new VisualIdentityWorkflowV1Builder(Registry) };
 
         var service = new ComfyUIImageGenerationService(mockComfyClient, storage, inputService, workflowBuilders, config, NullLogger<ComfyUIImageGenerationService>.Instance);
 
@@ -851,7 +853,7 @@ public sealed class VisualIdentityInvariantTests
     [Fact]
     public async Task ValidationTestD_MalformedParametersJson_ThrowsGpuNonTransientException_NoGpuCall()
     {
-        var builder = new VisualIdentityWorkflowV1Builder();
+        var builder = new VisualIdentityWorkflowV1Builder(Registry);
         var request = new ImageGenerationRequest(
             Prompt: "1girl",
             ParametersJson: "{ malformed json...",
@@ -869,7 +871,7 @@ public sealed class VisualIdentityInvariantTests
     [Fact]
     public async Task ValidationTestE_MissingCanonicalReferenceUrl_ThrowsGpuNonTransientException_NoGpuCall()
     {
-        var builder = new VisualIdentityWorkflowV1Builder();
+        var builder = new VisualIdentityWorkflowV1Builder(Registry);
         var request = new ImageGenerationRequest(
             Prompt: "1girl",
             ReferenceImageUrl: null,
@@ -887,7 +889,7 @@ public sealed class VisualIdentityInvariantTests
     [Fact]
     public async Task ValidationTestH_MissingSeed_ThrowsGpuNonTransientException_StrictDeterminism()
     {
-        var builder = new VisualIdentityWorkflowV1Builder();
+        var builder = new VisualIdentityWorkflowV1Builder(Registry);
         var request = new ImageGenerationRequest(
             Prompt: "1girl",
             Seed: null // Missing Seed

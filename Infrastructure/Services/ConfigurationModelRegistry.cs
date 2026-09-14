@@ -35,7 +35,6 @@ public sealed class ConfigurationModelRegistry : IModelRegistry
         // Backward compatibility / convenience aliases
         if (_modelsById.TryGetValue("majicmixrealistic", out var baselineMajic))
         {
-            _modelsByArtifactName.TryAdd("majicmixRealistic_v7.safetensors", baselineMajic);
             _modelsByArtifactName.TryAdd("majicmixrealistic.safetensors", baselineMajic);
         }
 
@@ -75,7 +74,7 @@ public sealed class ConfigurationModelRegistry : IModelRegistry
         }
     }
 
-    private void RegisterModel(ModelDefinition model)
+    public void RegisterModel(ModelDefinition model)
     {
         _modelsById[model.Id] = model;
         if (!string.IsNullOrWhiteSpace(model.ArtifactName))

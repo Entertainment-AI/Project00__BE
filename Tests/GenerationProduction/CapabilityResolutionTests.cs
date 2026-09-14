@@ -150,7 +150,8 @@ public sealed class CapabilityResolutionTests
     [Fact]
     public void Test1_SupportedModel_VisualIdentityV1_IsAcceptedByBuilder_AndExposesCapability()
     {
-        IComfyUIWorkflowBuilder builder = new VisualIdentityWorkflowV1Builder();
+        var registry = new ConfigurationModelRegistry();
+        IComfyUIWorkflowBuilder builder = new VisualIdentityWorkflowV1Builder(registry);
         const string supportedModel = "meinamix_meinaV11.safetensors";
 
         var capability = new ImageGenerationCapability(supportedModel, "VisualIdentity", 1);
@@ -197,7 +198,7 @@ public sealed class CapabilityResolutionTests
         var multiPolicy = new WorkflowCapabilityPolicy(new IComfyUIWorkflowBuilder[]
         {
             builder,
-            new TextToImageWorkflowV1Builder()
+            new TextToImageWorkflowV1Builder(registry)
         });
         Assert.True(multiPolicy.IsSupported(emptyRefRequest.ResolveEffectiveCapability()));
     }
@@ -208,7 +209,8 @@ public sealed class CapabilityResolutionTests
     [Fact]
     public void Test2_UnsupportedModel_IsRejectedByBuilder_AndPolicy()
     {
-        IComfyUIWorkflowBuilder builder = new VisualIdentityWorkflowV1Builder();
+        var registry = new ConfigurationModelRegistry();
+        IComfyUIWorkflowBuilder builder = new VisualIdentityWorkflowV1Builder(registry);
         var policy = new WorkflowCapabilityPolicy(new[] { builder });
 
         // Unknown model
@@ -221,14 +223,19 @@ public sealed class CapabilityResolutionTests
         Assert.False(builder.CanHandle(fluxCap));
         Assert.False(policy.IsSupported(fluxCap));
 
-        // Null / whitespace model
-        var emptyCap = new ImageGenerationCapability("", "VisualIdentity", 1);
-        Assert.False(builder.CanHandle(emptyCap));
-        Assert.False(policy.IsSupported(emptyCap));
+        // Unsupported model in request capability resolution
+        var unsupportedReq = new ImageGenerationRequest(
+            Prompt: "masterpiece",
+            Model: "sdxl_base_1.0.safetensors",
+            Workflow: "VisualIdentity",
+            WorkflowVersion: 1
+        );
+        Assert.False(policy.IsSupported(unsupportedReq.ResolveEffectiveCapability()));
 
-        var whitespaceCap = new ImageGenerationCapability("   ", "VisualIdentity", 1);
-        Assert.False(builder.CanHandle(whitespaceCap));
-        Assert.False(policy.IsSupported(whitespaceCap));
+        // GpuNonTransientException when attempting to validate
+        var ex = Assert.Throws<GpuNonTransientException>(() =>
+            unsupportedReq.ValidateCapability(policy));
+        Assert.Contains("is not supported", ex.Message);
     }
 
     // =========================================================================
@@ -237,9 +244,10 @@ public sealed class CapabilityResolutionTests
     [Fact]
     public void Test3_UnsupportedWorkflowOrVersion_IsRejected()
     {
-        IComfyUIWorkflowBuilder v1Builder = new VisualIdentityWorkflowV1Builder();
-        IComfyUIWorkflowBuilder v2Builder = new VisualContinuityWorkflowV2Builder();
-        IComfyUIWorkflowBuilder t2iBuilder = new TextToImageWorkflowV1Builder();
+        var registry = new ConfigurationModelRegistry();
+        IComfyUIWorkflowBuilder v1Builder = new VisualIdentityWorkflowV1Builder(registry);
+        IComfyUIWorkflowBuilder v2Builder = new VisualContinuityWorkflowV2Builder(registry);
+        IComfyUIWorkflowBuilder t2iBuilder = new TextToImageWorkflowV1Builder(registry);
         var policy = new WorkflowCapabilityPolicy(new[] { v1Builder, v2Builder, t2iBuilder });
         const string model = "meinamix_meinaV11.safetensors";
 
@@ -275,11 +283,12 @@ public sealed class CapabilityResolutionTests
         var mockClient = new MockComfyUIClient();
         var storage = new MockStorageService();
         var mockInput = new MockInputImageService();
+        var registry = new ConfigurationModelRegistry();
         var builders = new IComfyUIWorkflowBuilder[]
         {
-            new VisualIdentityWorkflowV1Builder(),
-            new VisualContinuityWorkflowV2Builder(),
-            new TextToImageWorkflowV1Builder()
+            new VisualIdentityWorkflowV1Builder(registry),
+            new VisualContinuityWorkflowV2Builder(registry),
+            new TextToImageWorkflowV1Builder(registry)
         };
         var config = new ConfigurationBuilder().Build();
 
@@ -312,11 +321,12 @@ public sealed class CapabilityResolutionTests
         var mockClient = new MockComfyUIClient();
         var storage = new MockStorageService();
         var mockInput = new MockInputImageService();
+        var registry = new ConfigurationModelRegistry();
         var builders = new IComfyUIWorkflowBuilder[]
         {
-            new VisualIdentityWorkflowV1Builder(),
-            new VisualContinuityWorkflowV2Builder(),
-            new TextToImageWorkflowV1Builder()
+            new VisualIdentityWorkflowV1Builder(registry),
+            new VisualContinuityWorkflowV2Builder(registry),
+            new TextToImageWorkflowV1Builder(registry)
         };
         var config = new ConfigurationBuilder().Build();
 
@@ -350,11 +360,12 @@ public sealed class CapabilityResolutionTests
         var mockClient = new MockComfyUIClient();
         var storage = new MockStorageService();
         var mockInput = new MockInputImageService();
+        var registry = new ConfigurationModelRegistry();
         var builders = new IComfyUIWorkflowBuilder[]
         {
-            new VisualIdentityWorkflowV1Builder(),
-            new VisualContinuityWorkflowV2Builder(),
-            new TextToImageWorkflowV1Builder()
+            new VisualIdentityWorkflowV1Builder(registry),
+            new VisualContinuityWorkflowV2Builder(registry),
+            new TextToImageWorkflowV1Builder(registry)
         };
         var config = new ConfigurationBuilder().Build();
 
@@ -369,7 +380,7 @@ public sealed class CapabilityResolutionTests
         var qualityGuardPolicy = new IdentityQualityGuardPolicy();
 
         var orchestrator = new ImageGenerationOrchestrator(
-            db, compiler, comfyService, NullLogger<ImageGenerationOrchestrator>.Instance,
+            db, compiler, new ImageGenerationExecutorSelector(comfyService), NullLogger<ImageGenerationOrchestrator>.Instance,
             dateTimeProvider, qualityEvaluator, qualityGuardPolicy, lineageResolver, acceptanceService,
             capabilityPolicy: new WorkflowCapabilityPolicy(builders)
         );
@@ -410,15 +421,10 @@ public sealed class CapabilityResolutionTests
         var acceptanceService = new ArtifactAcceptanceService(db, dateTimeProvider, NullLogger<ArtifactAcceptanceService>.Instance);
         var qualityEvaluator = new DevelopmentPassThroughIdentityQualityEvaluator();
         var qualityGuardPolicy = new IdentityQualityGuardPolicy();
-        var capabilityPolicy = new WorkflowCapabilityPolicy(new IComfyUIWorkflowBuilder[]
-        {
-            new VisualIdentityWorkflowV1Builder(),
-            new VisualContinuityWorkflowV2Builder(),
-            new TextToImageWorkflowV1Builder()
-        });
+        var capabilityPolicy = WorkflowCapabilityPolicy.CreateDefault();
 
         var orchestrator = new ImageGenerationOrchestrator(
-            db, compiler, spyProviderService, NullLogger<ImageGenerationOrchestrator>.Instance,
+            db, compiler, new ImageGenerationExecutorSelector(spyProviderService), NullLogger<ImageGenerationOrchestrator>.Instance,
             dateTimeProvider, qualityEvaluator, qualityGuardPolicy, lineageResolver, acceptanceService,
             capabilityPolicy: capabilityPolicy
         );
@@ -451,9 +457,10 @@ public sealed class CapabilityResolutionTests
     [Fact]
     public void Test5_AllCurrentBuilders_AcceptTheirSupportedCombinations_AndRejectCrossMismatches()
     {
-        IComfyUIWorkflowBuilder v1Builder = new VisualIdentityWorkflowV1Builder();
-        IComfyUIWorkflowBuilder v2Builder = new VisualContinuityWorkflowV2Builder();
-        IComfyUIWorkflowBuilder t2iBuilder = new TextToImageWorkflowV1Builder();
+        var registry = new ConfigurationModelRegistry();
+        IComfyUIWorkflowBuilder v1Builder = new VisualIdentityWorkflowV1Builder(registry);
+        IComfyUIWorkflowBuilder v2Builder = new VisualContinuityWorkflowV2Builder(registry);
+        IComfyUIWorkflowBuilder t2iBuilder = new TextToImageWorkflowV1Builder(registry);
         const string baselineModel = "meinamix_meinaV11.safetensors";
 
         var viCap = new ImageGenerationCapability(baselineModel, "VisualIdentity", 1);
@@ -475,13 +482,14 @@ public sealed class CapabilityResolutionTests
         Assert.False(t2iBuilder.CanHandle(viCap));
         Assert.False(t2iBuilder.CanHandle(vcCap));
 
-        // Custom models passed in constructor
+        // Custom models registered in custom registry
         const string customModel = "custom_finetuned_checkpoint.safetensors";
-        IComfyUIWorkflowBuilder customV1Builder = new VisualIdentityWorkflowV1Builder(new[] { customModel });
+        var customRegistry = new CustomSingleModelRegistry(new ModelDefinition(customModel, ModelFamily.Sd15, customModel));
+        IComfyUIWorkflowBuilder customV1Builder = new VisualIdentityWorkflowV1Builder(customRegistry);
         var customCap = new ImageGenerationCapability(customModel, "VisualIdentity", 1);
 
         Assert.True(customV1Builder.CanHandle(customCap));
-        // Base model was replaced in custom builder constructor
+        // Base model was not included in custom single-model registry
         Assert.False(customV1Builder.CanHandle(viCap));
     }
 
@@ -497,7 +505,9 @@ public sealed class CapabilityResolutionTests
         using var db = CreateSqliteDbContext(connection);
 
         const string customModel = "custom_finetuned_checkpoint.safetensors";
-        var customBuilder = new VisualIdentityWorkflowV1Builder(new[] { customModel });
+        var customRegistry = new ConfigurationModelRegistry();
+        customRegistry.RegisterModel(new ModelDefinition(customModel, ModelFamily.Sd15, customModel));
+        var customBuilder = new VisualIdentityWorkflowV1Builder(customRegistry);
         var capabilityPolicy = new WorkflowCapabilityPolicy(new[] { customBuilder });
         var spyProvider = new SpyImageGenerationProviderService();
 
@@ -505,7 +515,7 @@ public sealed class CapabilityResolutionTests
         Assert.True(capabilityPolicy.IsSupported(customCap));
 
         var orchestrator = new ImageGenerationOrchestrator(
-            db, new VisualPromptCompiler(), spyProvider, NullLogger<ImageGenerationOrchestrator>.Instance,
+            db, new VisualPromptCompiler(), new ImageGenerationExecutorSelector(spyProvider), NullLogger<ImageGenerationOrchestrator>.Instance,
             new SystemDateTimeProvider(), new DevelopmentPassThroughIdentityQualityEvaluator(),
             new IdentityQualityGuardPolicy(), new PredecessorLineageResolver(db, NullLogger<PredecessorLineageResolver>.Instance),
             new ArtifactAcceptanceService(db, new SystemDateTimeProvider(), NullLogger<ArtifactAcceptanceService>.Instance),
@@ -578,5 +588,14 @@ public sealed class CapabilityResolutionTests
         Assert.Equal(animePromptA, animePromptB);
         Assert.Contains("anime style, vibrant anime aesthetic", animePromptA);
         Assert.DoesNotContain("photorealistic", animePromptA);
+    }
+
+    private sealed class CustomSingleModelRegistry : IModelRegistry
+    {
+        private readonly ModelDefinition _model;
+        public CustomSingleModelRegistry(ModelDefinition model) => _model = model;
+        public ModelDefinition? FindById(string modelId) => string.Equals(modelId, _model.Id, StringComparison.OrdinalIgnoreCase) ? _model : null;
+        public ModelDefinition GetRequired(string modelId) => FindById(modelId) ?? throw new KeyNotFoundException();
+        public IReadOnlyCollection<ModelDefinition> GetAll() => new[] { _model };
     }
 }

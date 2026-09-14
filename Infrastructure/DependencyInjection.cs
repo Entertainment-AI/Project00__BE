@@ -104,6 +104,7 @@ public static class DependencyInjection
         services.AddScoped<Infrastructure.ImageGeneration.DedicatedImageGenerationService>();
         services.AddHttpClient<Infrastructure.ImageGeneration.ComfyUI.IComfyUIClient, Infrastructure.ImageGeneration.ComfyUI.ComfyUIClient>(c => c.Timeout = TimeSpan.FromSeconds(120));
         services.AddHttpClient<Infrastructure.ImageGeneration.ComfyUI.IComfyUIInputImageService, Infrastructure.ImageGeneration.ComfyUI.ComfyUIInputImageService>();
+        services.AddSingleton<IModelRegistry, ConfigurationModelRegistry>();
         services.AddSingleton<Infrastructure.ImageGeneration.ComfyUI.IComfyUIWorkflowBuilder, Infrastructure.ImageGeneration.ComfyUI.VisualIdentityWorkflowV1Builder>();
         services.AddSingleton<Infrastructure.ImageGeneration.ComfyUI.IComfyUIWorkflowBuilder, Infrastructure.ImageGeneration.ComfyUI.VisualContinuityWorkflowV2Builder>();
         services.AddSingleton<Infrastructure.ImageGeneration.ComfyUI.IComfyUIWorkflowBuilder, Infrastructure.ImageGeneration.ComfyUI.TextToImageWorkflowV1Builder>();
@@ -121,7 +122,6 @@ public static class DependencyInjection
         }
         services.AddScoped<IImageGenerationExecutor>(sp => sp.GetRequiredService<IImageGenerationService>());
         services.AddScoped<IImageGenerationExecutorSelector, Infrastructure.Services.ImageGenerationExecutorSelector>();
-        services.AddSingleton<IModelRegistry, ConfigurationModelRegistry>();
 
         // Identity Quality Guard & Reference Authority Policy (PR #24)
         var guardPolicy = Application.Services.IdentityQualityGuardPolicy.FromConfiguration(configuration);

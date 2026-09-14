@@ -74,7 +74,7 @@ public sealed class ComfyUIImageGenerationIntegrationTests
         var storageService = new InMemoryStorageService();
         var comfyClient = new ComfyUIClient(httpClient, config, NullLogger<ComfyUIClient>.Instance);
         var inputImageService = new ComfyUIInputImageService(httpClient, config, NullLogger<ComfyUIInputImageService>.Instance);
-        var workflowBuilders = new IComfyUIWorkflowBuilder[] { new VisualIdentityWorkflowV1Builder() };
+        var workflowBuilders = new IComfyUIWorkflowBuilder[] { new VisualIdentityWorkflowV1Builder(new Infrastructure.Services.ConfigurationModelRegistry()) };
         var service = new ComfyUIImageGenerationService(comfyClient, storageService, inputImageService, workflowBuilders, config, NullLogger<ComfyUIImageGenerationService>.Instance);
 
         var request = new ImageGenerationRequest(

@@ -174,7 +174,7 @@ public sealed class ExecutionEngineDecouplingTests
         var orchestrator = new ImageGenerationOrchestrator(
             db,
             compiler,
-            executor,
+            new ImageGenerationExecutorSelector(executor),
             NullLogger<ImageGenerationOrchestrator>.Instance,
             dateTimeProvider,
             qualityEvaluator,
@@ -210,11 +210,12 @@ public sealed class ExecutionEngineDecouplingTests
         var mockClient = new MockComfyUIClient();
         var storage = new MockStorageService();
         var mockInput = new MockInputImageService();
+        var registry = new ConfigurationModelRegistry();
         var builders = new IComfyUIWorkflowBuilder[]
         {
-            new VisualIdentityWorkflowV1Builder(),
-            new VisualContinuityWorkflowV2Builder(),
-            new TextToImageWorkflowV1Builder()
+            new VisualIdentityWorkflowV1Builder(registry),
+            new VisualContinuityWorkflowV2Builder(registry),
+            new TextToImageWorkflowV1Builder(registry)
         };
         var config = new ConfigurationBuilder().Build();
 
@@ -260,7 +261,7 @@ public sealed class ExecutionEngineDecouplingTests
         // 1. First execution with Engine A
         var engineA = new PureStubExecutor("https://cdn.project00.ai/engine_a.png", "EngineAlpha");
         var orchestratorA = new ImageGenerationOrchestrator(
-            db, compiler, engineA, NullLogger<ImageGenerationOrchestrator>.Instance,
+            db, compiler, new ImageGenerationExecutorSelector(engineA), NullLogger<ImageGenerationOrchestrator>.Instance,
             dateTimeProvider, qualityEvaluator, qualityGuardPolicy, lineageResolver, acceptanceService,
             CreateDefaultCapabilityPolicy());
 
@@ -274,7 +275,7 @@ public sealed class ExecutionEngineDecouplingTests
         // 2. Second execution with Engine B plugged into the exact same ImageGenerationOrchestrator structure
         var engineB = new PureStubExecutor("https://cdn.project00.ai/engine_b.png", "EngineBeta");
         var orchestratorB = new ImageGenerationOrchestrator(
-            db, compiler, engineB, NullLogger<ImageGenerationOrchestrator>.Instance,
+            db, compiler, new ImageGenerationExecutorSelector(engineB), NullLogger<ImageGenerationOrchestrator>.Instance,
             dateTimeProvider, qualityEvaluator, qualityGuardPolicy, lineageResolver, acceptanceService,
             CreateDefaultCapabilityPolicy());
 
@@ -363,7 +364,7 @@ public sealed class ExecutionEngineDecouplingTests
         var fingerprintService = new ConstantFingerprintService("reuse-fingerprint-123");
 
         var orchestrator = new ImageGenerationOrchestrator(
-            db, compiler, executor, NullLogger<ImageGenerationOrchestrator>.Instance,
+            db, compiler, new ImageGenerationExecutorSelector(executor), NullLogger<ImageGenerationOrchestrator>.Instance,
             dateTimeProvider, qualityEvaluator, qualityGuardPolicy, lineageResolver, acceptanceService,
             CreateDefaultCapabilityPolicy(),
             fingerprintService: fingerprintService);
@@ -479,7 +480,7 @@ public sealed class ExecutionEngineDecouplingTests
         var qualityGuardPolicy = new IdentityQualityGuardPolicy();
 
         var orchestrator = new ImageGenerationOrchestrator(
-            db, compiler, executor, NullLogger<ImageGenerationOrchestrator>.Instance,
+            db, compiler, new ImageGenerationExecutorSelector(executor), NullLogger<ImageGenerationOrchestrator>.Instance,
             dateTimeProvider, qualityEvaluator, qualityGuardPolicy, lineageResolver, acceptanceService,
             CreateDefaultCapabilityPolicy());
 

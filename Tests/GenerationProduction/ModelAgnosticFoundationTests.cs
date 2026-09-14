@@ -1,4 +1,5 @@
 using Application.Common;
+using Application.DTOs;
 using Application.Exceptions;
 using Application.Interfaces;
 using Application.Services;
@@ -7,6 +8,7 @@ using Domain.Enums;
 using Domain.ValueObjects;
 using Infrastructure.ImageGeneration;
 using Infrastructure.ImageGeneration.ComfyUI;
+using Infrastructure.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
@@ -15,6 +17,7 @@ namespace Tests.GenerationProduction;
 
 public sealed class ModelAgnosticFoundationTests
 {
+    private static readonly IModelRegistry Registry = new ConfigurationModelRegistry();
     private sealed class MockComfyUIClient : IComfyUIClient
     {
         public int QueuePromptCallCount { get; private set; }
@@ -111,7 +114,7 @@ public sealed class ModelAgnosticFoundationTests
 
         // 7. Semantics assertion: Configuration alone does NOT automatically mean a workflow can execute it
         // A standard SD1.5 builder without this model declared in SupportedModels must reject it cleanly
-        var defaultBuilder = new VisualIdentityWorkflowV1Builder();
+        var defaultBuilder = new VisualIdentityWorkflowV1Builder(Registry);
         Assert.False(defaultBuilder.CanHandle(request.Workflow, request.WorkflowVersion, request.Model));
     }
 
@@ -200,9 +203,9 @@ public sealed class ModelAgnosticFoundationTests
     {
         const string sd15Model = "meinamix_meinaV11.safetensors";
 
-        var v1Builder = new VisualIdentityWorkflowV1Builder();
-        var v2Builder = new VisualContinuityWorkflowV2Builder();
-        var t2iBuilder = new TextToImageWorkflowV1Builder();
+        var v1Builder = new VisualIdentityWorkflowV1Builder(Registry);
+        var v2Builder = new VisualContinuityWorkflowV2Builder(Registry);
+        var t2iBuilder = new TextToImageWorkflowV1Builder(Registry);
 
         // Compatibility checks
         Assert.True(v1Builder.CanHandle("VisualIdentity", 1, sd15Model));
@@ -230,9 +233,9 @@ public sealed class ModelAgnosticFoundationTests
     public void Test2b_WorkflowBuilders_WhenRequestModelMissingOrWhitespace_ThrowsGpuNonTransientException()
     {
         // Assert: NO builder may have a hidden fallback to meinamix. Model must be explicitly required.
-        var v1Builder = new VisualIdentityWorkflowV1Builder();
-        var v2Builder = new VisualContinuityWorkflowV2Builder();
-        var t2iBuilder = new TextToImageWorkflowV1Builder();
+        var v1Builder = new VisualIdentityWorkflowV1Builder(Registry);
+        var v2Builder = new VisualContinuityWorkflowV2Builder(Registry);
+        var t2iBuilder = new TextToImageWorkflowV1Builder(Registry);
 
         var nullModelReq = new ImageGenerationRequest(Prompt: "1girl", Model: null, Seed: 42);
         var emptyModelReq = new ImageGenerationRequest(Prompt: "1girl", Model: "   ", Seed: 42);
@@ -250,9 +253,9 @@ public sealed class ModelAgnosticFoundationTests
     [Fact]
     public void Test2c_WorkflowBuilders_WhenRequestModelNotSupported_ThrowsGpuNonTransientException()
     {
-        var v1Builder = new VisualIdentityWorkflowV1Builder();
-        var v2Builder = new VisualContinuityWorkflowV2Builder();
-        var t2iBuilder = new TextToImageWorkflowV1Builder();
+        var v1Builder = new VisualIdentityWorkflowV1Builder(Registry);
+        var v2Builder = new VisualContinuityWorkflowV2Builder(Registry);
+        var t2iBuilder = new TextToImageWorkflowV1Builder(Registry);
 
         var unsupportedReq = new ImageGenerationRequest(Prompt: "1girl", Model: "unsupported_checkpoint.safetensors", Seed: 42);
 
@@ -269,12 +272,13 @@ public sealed class ModelAgnosticFoundationTests
     [Fact]
     public void Test2d_WorkflowBuilders_CanBeExtendedWithSupportedModels_AndGenerateCorrectly()
     {
-        // Demonstrates true capability semantics: When a workflow builder is declared to support an additional model,
+        // Demonstrates true capability semantics: When a workflow builder resolves through an extended model registry,
         // it can handle it and generates the graph using that exact model without fallback.
         const string customModel = "custom_sd15_checkpoint.safetensors";
-        var customSupported = new[] { "meinamix_meinaV11.safetensors", customModel };
+        var customRegistry = new ConfigurationModelRegistry();
+        customRegistry.RegisterModel(new ModelDefinition("custom-sd15", ModelFamily.Sd15, customModel));
 
-        var customV1Builder = new VisualIdentityWorkflowV1Builder(customSupported);
+        var customV1Builder = new VisualIdentityWorkflowV1Builder(customRegistry);
         Assert.True(customV1Builder.CanHandle("VisualIdentity", 1, customModel));
 
         var req = new ImageGenerationRequest(
@@ -300,9 +304,9 @@ public sealed class ModelAgnosticFoundationTests
         var inputService = new MockInputImageService();
         var builders = new IComfyUIWorkflowBuilder[]
         {
-            new VisualIdentityWorkflowV1Builder(),
-            new VisualContinuityWorkflowV2Builder(),
-            new TextToImageWorkflowV1Builder()
+            new VisualIdentityWorkflowV1Builder(Registry),
+            new VisualContinuityWorkflowV2Builder(Registry),
+            new TextToImageWorkflowV1Builder(Registry)
         };
         var config = new ConfigurationBuilder().Build();
 

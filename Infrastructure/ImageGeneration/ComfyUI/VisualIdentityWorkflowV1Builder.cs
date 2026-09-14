@@ -13,34 +13,15 @@ public sealed class VisualIdentityWorkflowV1Builder : IComfyUIWorkflowBuilder
     public ModelFamily SupportedFamily => ModelFamily.Sd15;
     public bool SupportsIdentityConditioning => true;
 
-    public static readonly IReadOnlySet<string> DefaultSupportedModels = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-    {
-        "meinamix_meinaV11.safetensors",
-        "meinamix",
-        "epicrealism_naturalSin.safetensors",
-        "epicrealism"
-    };
+    private readonly IModelRegistry _modelRegistry;
+    public IReadOnlySet<string> SupportedModels => _modelRegistry.GetAll()
+        .Where(m => m.Family == SupportedFamily)
+        .Select(m => m.Id)
+        .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
-    private readonly IModelRegistry? _modelRegistry;
-    private readonly HashSet<string> _supportedModels;
-    public IReadOnlySet<string> SupportedModels => _supportedModels;
-
-    public VisualIdentityWorkflowV1Builder(IModelRegistry? modelRegistry = null)
-        : this(modelRegistry, supportedModels: null)
+    public VisualIdentityWorkflowV1Builder(IModelRegistry modelRegistry)
     {
-    }
-
-    public VisualIdentityWorkflowV1Builder(IEnumerable<string>? supportedModels)
-        : this(modelRegistry: null, supportedModels: supportedModels)
-    {
-    }
-
-    public VisualIdentityWorkflowV1Builder(IModelRegistry? modelRegistry, IEnumerable<string>? supportedModels)
-    {
-        _modelRegistry = modelRegistry;
-        _supportedModels = supportedModels != null
-            ? new HashSet<string>(supportedModels, StringComparer.OrdinalIgnoreCase)
-            : new HashSet<string>(DefaultSupportedModels, StringComparer.OrdinalIgnoreCase);
+        _modelRegistry = modelRegistry ?? throw new ArgumentNullException(nameof(modelRegistry));
     }
 
     public bool CanHandle(string workflow, int workflowVersion, string? model)
@@ -53,17 +34,8 @@ public sealed class VisualIdentityWorkflowV1Builder : IComfyUIWorkflowBuilder
         }
 
         var trimmedModel = model.Trim();
-
-        if (_modelRegistry != null)
-        {
-            var modelDef = _modelRegistry.FindById(trimmedModel);
-            if (modelDef != null)
-            {
-                return modelDef.Family == SupportedFamily;
-            }
-        }
-
-        return _supportedModels.Contains(trimmedModel);
+        var modelDef = _modelRegistry.FindById(trimmedModel);
+        return modelDef != null && modelDef.Family == SupportedFamily;
     }
 
 
@@ -80,36 +52,18 @@ public sealed class VisualIdentityWorkflowV1Builder : IComfyUIWorkflowBuilder
         }
 
         var modelName = request.Model.Trim();
-        string resolvedArtifactName;
+        var modelDef = _modelRegistry.FindById(modelName);
+        if (modelDef == null)
+        {
+            throw new GpuNonTransientException($"Model '{modelName}' is not supported by {WorkflowName} workflow v{WorkflowVersion}.");
+        }
 
-        if (_modelRegistry != null)
+        if (modelDef.Family != SupportedFamily)
         {
-            var modelDef = _modelRegistry.FindById(modelName);
-            if (modelDef != null)
-            {
-                if (modelDef.Family != SupportedFamily)
-                {
-                    throw new GpuNonTransientException($"Model '{modelName}' (Family: {modelDef.Family}) is not supported by {WorkflowName} workflow v{WorkflowVersion} (Requires: {SupportedFamily}).");
-                }
-                resolvedArtifactName = modelDef.ArtifactName;
-            }
-            else if (_supportedModels.Contains(modelName))
-            {
-                resolvedArtifactName = modelName;
-            }
-            else
-            {
-                throw new GpuNonTransientException($"Model '{modelName}' is not supported by {WorkflowName} workflow v{WorkflowVersion}.");
-            }
+            throw new GpuNonTransientException($"Model '{modelName}' (Family: {modelDef.Family}) is not supported by {WorkflowName} workflow v{WorkflowVersion} (Requires: {SupportedFamily}).");
         }
-        else
-        {
-            if (!_supportedModels.Contains(modelName))
-            {
-                throw new GpuNonTransientException($"Model '{modelName}' is not supported by {WorkflowName} workflow v{WorkflowVersion}.");
-            }
-            resolvedArtifactName = modelName;
-        }
+
+        var resolvedArtifactName = modelDef.ArtifactName;
 
         var defaultNegative = "2girls, 2boys, multiple people, group, crowd, duo, couple, 2persons, extra person, deformed horns, extra horns, asymmetrical malformed horns, bad anatomy, bad hands, missing fingers, extra digits, cropped, signature, watermark, blurry, low quality, worst quality";
         var negativePrompt = !string.IsNullOrWhiteSpace(request.NegativePrompt) ? request.NegativePrompt : defaultNegative;

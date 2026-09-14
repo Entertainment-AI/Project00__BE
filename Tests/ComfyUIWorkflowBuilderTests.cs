@@ -1,15 +1,18 @@
 using Application.Interfaces;
 using Infrastructure.ImageGeneration.ComfyUI;
+using Infrastructure.Services;
 using Xunit;
 
 namespace Tests;
 
 public sealed class ComfyUIWorkflowBuilderTests
 {
+    private static readonly IModelRegistry Registry = new ConfigurationModelRegistry();
+
     [Fact]
     public void VisualIdentityWorkflowV1Builder_Builds_Exact_Node_Graph_With_Frozen_Parameters()
     {
-        var builder = new VisualIdentityWorkflowV1Builder();
+        var builder = new VisualIdentityWorkflowV1Builder(Registry);
 
         Assert.Equal("VisualIdentity", builder.WorkflowName);
         Assert.Equal(1, builder.WorkflowVersion);
@@ -109,7 +112,7 @@ public sealed class ComfyUIWorkflowBuilderTests
     [Fact]
     public void VisualIdentityWorkflowV1Builder_Respects_Custom_IPAdapter_Overrides()
     {
-        var builder = new VisualIdentityWorkflowV1Builder();
+        var builder = new VisualIdentityWorkflowV1Builder(Registry);
 
         var request = new ImageGenerationRequest(
             Prompt: "solo, 1girl",
@@ -129,7 +132,7 @@ public sealed class ComfyUIWorkflowBuilderTests
     [Fact]
     public void VisualIdentityWorkflowV1Builder_GraphTopology_HasExactRequiredNodeConnections()
     {
-        var builder = new VisualIdentityWorkflowV1Builder();
+        var builder = new VisualIdentityWorkflowV1Builder(Registry);
         var request = new ImageGenerationRequest(Prompt: "masterpiece, 1girl", Model: "meinamix_meinaV11.safetensors", Seed: 42);
         var graph = builder.BuildWorkflow(request, "ref_face.png");
 
@@ -160,7 +163,7 @@ public sealed class ComfyUIWorkflowBuilderTests
     [Fact]
     public void VisualIdentityWorkflowV1Builder_Uses_Calibrated_Default_Parameters_When_ParametersJson_Is_Null()
     {
-        var builder = new VisualIdentityWorkflowV1Builder();
+        var builder = new VisualIdentityWorkflowV1Builder(Registry);
         var request = new ImageGenerationRequest(
             Prompt: "masterpiece, 1girl, silver hair, red eyes",
             Model: "meinamix_meinaV11.safetensors",
@@ -180,7 +183,7 @@ public sealed class ComfyUIWorkflowBuilderTests
     [Fact]
     public void VisualIdentityWorkflowV1Builder_Exports_And_Verifies_Benchmark_Parity_Template()
     {
-        var builder = new VisualIdentityWorkflowV1Builder();
+        var builder = new VisualIdentityWorkflowV1Builder(Registry);
         var request = new ImageGenerationRequest(
             Prompt: "masterpiece, 1girl, canonical template prompt",
             NegativePrompt: "2girls, multiple people, bad anatomy, blurry",
@@ -223,7 +226,7 @@ public sealed class ComfyUIWorkflowBuilderTests
     [Fact]
     public void VisualContinuityWorkflowV2Builder_Builds_Dual_Reference_Graph_When_PreviousSceneImage_Is_Present()
     {
-        var builder = new VisualContinuityWorkflowV2Builder();
+        var builder = new VisualContinuityWorkflowV2Builder(Registry);
         Assert.Equal("VisualContinuity", builder.WorkflowName);
         Assert.Equal(2, builder.WorkflowVersion);
 
@@ -268,7 +271,7 @@ public sealed class ComfyUIWorkflowBuilderTests
     [Fact]
     public void VisualContinuityWorkflowV2Builder_Falls_Back_To_Single_Identity_Slot_When_PreviousSceneImage_Is_Null()
     {
-        var builder = new VisualContinuityWorkflowV2Builder();
+        var builder = new VisualContinuityWorkflowV2Builder(Registry);
         var request = new ImageGenerationRequest(
             Prompt: "masterpiece, 1girl, silver hair, red eyes",
             Model: "meinamix_meinaV11.safetensors",
@@ -293,7 +296,7 @@ public sealed class ComfyUIWorkflowBuilderTests
     [Fact]
     public void VisualContinuityWorkflowV2Builder_Exports_And_Verifies_Benchmark_Parity_Template()
     {
-        var builder = new VisualContinuityWorkflowV2Builder();
+        var builder = new VisualContinuityWorkflowV2Builder(Registry);
         var request = new ImageGenerationRequest(
             Prompt: "masterpiece, 1girl, canonical template prompt",
             NegativePrompt: "2girls, multiple people, bad anatomy, blurry",
