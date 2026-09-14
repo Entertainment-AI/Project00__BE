@@ -269,4 +269,71 @@ public static class CharacterGenerationPrompts
             Output ONLY these two lines.
             """;
     }
+
+    public static string BuildStandeePrompt(
+        string? name,
+        string? title,
+        string? category,
+        string? personality,
+        string? idea,
+        Domain.Enums.WorldGenre? worldGenre = null,
+        Domain.ValueObjects.CharacterVisualIdentity? visualIdentity = null)
+    {
+        var genreDescription = worldGenre switch
+        {
+            Domain.Enums.WorldGenre.HighFantasy => "High Fantasy, Xianxia/Wuxia magical realm, mystical aura, ethereal fantasy aesthetics",
+            Domain.Enums.WorldGenre.UrbanSupernatural => "Modern Urban Supernatural, hidden occult powers, sleek contemporary mystical style",
+            Domain.Enums.WorldGenre.CyberpunkSciFi => "Cyberpunk / Futuristic Sci-Fi, neon lights, high-tech cybernetic accents, futuristic aesthetic",
+            Domain.Enums.WorldGenre.Historical => "Historical Ancient Court / Period Drama, traditional ancient garments, elegant dynasty aesthetics",
+            Domain.Enums.WorldGenre.MundaneSliceOfLife => "Contemporary Slice of Life, modern realistic urban aesthetics, stylish everyday fashion",
+            _ => "Aesthetic cinematic universe"
+        };
+
+        var visualDetails = "";
+        if (visualIdentity != null)
+        {
+            var parts = new List<string>();
+            if (!string.IsNullOrWhiteSpace(visualIdentity.Gender)) parts.Add($"Gender: {visualIdentity.Gender}");
+            if (!string.IsNullOrWhiteSpace(visualIdentity.Hair)) parts.Add($"Hair: {visualIdentity.Hair}");
+            if (!string.IsNullOrWhiteSpace(visualIdentity.Eyes)) parts.Add($"Eyes: {visualIdentity.Eyes}");
+            if (!string.IsNullOrWhiteSpace(visualIdentity.Face)) parts.Add($"Face: {visualIdentity.Face}");
+            if (!string.IsNullOrWhiteSpace(visualIdentity.AgeAppearance)) parts.Add($"Age Appearance: {visualIdentity.AgeAppearance}");
+            if (!string.IsNullOrWhiteSpace(visualIdentity.Skin)) parts.Add($"Skin: {visualIdentity.Skin}");
+            if (!string.IsNullOrWhiteSpace(visualIdentity.Body)) parts.Add($"Body & Stature: {visualIdentity.Body}");
+            if (!string.IsNullOrWhiteSpace(visualIdentity.ClothingStyle)) parts.Add($"Clothing / Outfit: {visualIdentity.ClothingStyle}");
+            if (!string.IsNullOrWhiteSpace(visualIdentity.Accessories)) parts.Add($"Accessories / Distinctive Marks: {visualIdentity.Accessories}");
+            if (!string.IsNullOrWhiteSpace(visualIdentity.Style)) parts.Add($"Visual Style / Aesthetic: {visualIdentity.Style}");
+
+            if (parts.Count > 0)
+            {
+                visualDetails = string.Join("\n- ", parts);
+            }
+        }
+
+        var coreGenderTag = (visualIdentity?.Gender?.Equals("Male", StringComparison.OrdinalIgnoreCase) == true)
+            ? "1boy, solo"
+            : (visualIdentity?.Gender?.Equals("Female", StringComparison.OrdinalIgnoreCase) == true ? "1girl, solo" : "1person, solo");
+
+        return $"""
+            You are an Elite Character Concept Artist & Visual Designer specializing in Character Standee Key Visuals (Full-Body / Standing Character Design Sheet).
+
+            Character Profile:
+            - Name: {name ?? "Character"}
+            - Title / Role: {title ?? "Hero"}
+            - World Genre: {genreDescription}
+            - Lore / Personality / Biography: {personality ?? idea ?? "Unique fascinating character"}
+            - Specified Visual Identity (CRITICAL - YOU MUST DIRECTLY TRANSLATE THESE ATTRIBUTES INTO THE PROMPT):
+            {(string.IsNullOrWhiteSpace(visualDetails) ? "- Design a distinct, captivating, coherent visual design fitting the lore and title" : $"- {visualDetails}")}
+
+            TASK:
+            Translate the character's exact visual identity into 35 - 50 rich, comma-separated English image prompt tags for a breathtaking full-body / standing character key visual (standee):
+            1. Gender & Core Figure: e.g. {coreGenderTag}, waist-up standing portrait or full body, dynamic graceful posture, looking at viewer.
+            2. Exact Hair, Eyes, Facial Expression, and Skin matching the Visual Identity attributes.
+            3. Body, Physique & Proportions: faithfully translate body build, silhouette, stature, and curves (e.g. slender build, long legs, athletic).
+            4. Complete Outfit & Accessories: full garments, distinctive accessories, layered fabrics, textures, and footwear matching the character's lore.
+            5. Lighting & Quality: masterpiece, best quality, sharp focus, authentic lighting, highly detailed, 8k uhd.
+
+            Output ONLY the raw comma-separated English prompt tags.
+            """;
+    }
 }

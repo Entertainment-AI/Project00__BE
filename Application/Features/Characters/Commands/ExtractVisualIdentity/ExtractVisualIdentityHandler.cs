@@ -91,22 +91,12 @@ public sealed class ExtractVisualIdentityHandler : IRequestHandler<ExtractVisual
                 else
                 {
                     referenceUrl = inputUrl;
-                    // If local file in wwwroot, read from disk
-                    string? localPath = null;
-                    if (inputUrl.StartsWith("/uploads/", StringComparison.OrdinalIgnoreCase) || inputUrl.StartsWith("uploads/", StringComparison.OrdinalIgnoreCase))
+                    var readBytes = await _storageService.ReadImageBytesAsync(inputUrl, cancellationToken);
+                    if (readBytes != null && readBytes.Length > 0)
                     {
-                        var cleanRel = inputUrl.TrimStart('/');
-                        var possible1 = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", cleanRel.Replace('/', Path.DirectorySeparatorChar));
-                        var possible2 = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "wwwroot", cleanRel.Replace('/', Path.DirectorySeparatorChar));
-                        if (File.Exists(possible1)) localPath = possible1;
-                        else if (File.Exists(possible2)) localPath = possible2;
-                    }
-
-                    if (localPath != null && File.Exists(localPath))
-                    {
-                        imageBytes = await File.ReadAllBytesAsync(localPath, cancellationToken);
-                        if (localPath.EndsWith(".png", StringComparison.OrdinalIgnoreCase)) contentType = "image/png";
-                        else if (localPath.EndsWith(".webp", StringComparison.OrdinalIgnoreCase)) contentType = "image/webp";
+                        imageBytes = readBytes;
+                        if (inputUrl.EndsWith(".png", StringComparison.OrdinalIgnoreCase)) contentType = "image/png";
+                        else if (inputUrl.EndsWith(".webp", StringComparison.OrdinalIgnoreCase)) contentType = "image/webp";
                     }
                     else
                     {
@@ -119,7 +109,7 @@ public sealed class ExtractVisualIdentityHandler : IRequestHandler<ExtractVisual
                 return Result<ExtractVisualIdentityResponse>.Failure(400, "No reference image was provided.");
             }
 
-            // Extract structured, zero-hallucination semantic visual identity
+            // Extract structured, evidence-bound semantic visual identity observations
             var extractedResult = await _extractor.ExtractIdentityAsync(imageBytes, contentType, cancellationToken);
 
             _logger.LogInformation("Successfully extracted visual identity for reference image: {ReferenceUrl}", referenceUrl);
@@ -129,7 +119,7 @@ public sealed class ExtractVisualIdentityHandler : IRequestHandler<ExtractVisual
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
             _logger.LogError(ex, "Failed to extract visual identity from reference image");
-            return Result<ExtractVisualIdentityResponse>.Failure(500, $"Failed to process reference image: {ex.Message}");
+            return Result<ExtractVisualIdentityResponse>.Failure(500, "Failed to process reference image.");
         }
     }
 }

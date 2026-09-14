@@ -168,6 +168,7 @@ public record GenerateStandeeRequest
     public CharacterVisualIdentity? VisualIdentity { get; init; }
     public string? ReferenceImageUrl { get; init; }
     public string? AvatarUrl { get; init; }
+    public string? BodyReferenceUrl { get; init; }
 
     public GenerateStandeeRequest() { }
 
@@ -180,7 +181,8 @@ public record GenerateStandeeRequest
         WorldGenre? worldGenre = null,
         CharacterVisualIdentity? visualIdentity = null,
         string? referenceImageUrl = null,
-        string? avatarUrl = null)
+        string? avatarUrl = null,
+        string? bodyReferenceUrl = null)
     {
         Name = name;
         Title = title;
@@ -191,6 +193,7 @@ public record GenerateStandeeRequest
         VisualIdentity = visualIdentity;
         ReferenceImageUrl = referenceImageUrl;
         AvatarUrl = avatarUrl;
+        BodyReferenceUrl = bodyReferenceUrl;
     }
 }
 
@@ -198,4 +201,7 @@ public record GenerateStandeeResponse(
     string ImageUrl,
     string RevisedPrompt,
     string? StandeeUrl = null
-);
+)
+{
+    public string? CanonicalBodyReferenceUrl => StandeeUrl;
+}

@@ -84,9 +84,13 @@ public sealed class VisualIdentityExtractorTests
             ClothingStyle: "dark fantasy armor",
             Accessories: "silver necklace",
             OriginalReferenceUrl: "https://cdn.project00.ai/original_upload.png",
-            CanonicalReferenceUrl: "https://cdn.project00.ai/face_ref.png",
-            FullBodyUrl: "https://cdn.project00.ai/fullbody_ref.png",
-            SignatureFeatures: new List<string> { "curved black and red dragon horns", "pointy ears" },
+            CanonicalFaceReferenceUrl: "https://cdn.project00.ai/face_ref.png",
+            CanonicalBodyReferenceUrl: "https://cdn.project00.ai/fullbody_ref.png",
+            SignatureFeatures: new List<ConfirmedSignatureFeatureDto>
+            {
+                new("curved black and red dragon horns", "curved black and red dragon horns", FeatureImportance.High, FeaturePersistence.EveryTurn),
+                new("pointy ears", "pointy ears", FeatureImportance.Contextual, FeaturePersistence.SameSceneOnly)
+            },
             Style: "Anime"
         );
 
@@ -98,11 +102,32 @@ public sealed class VisualIdentityExtractorTests
         Assert.Equal("pale porcelain", identity.Skin);
         Assert.Equal("slender build, long-legged appearance", identity.Body);
         Assert.Equal("https://cdn.project00.ai/original_upload.png", identity.OriginalReferenceUrl);
-        Assert.Equal("https://cdn.project00.ai/face_ref.png", identity.CanonicalReferenceUrl);
-        Assert.Equal("https://cdn.project00.ai/fullbody_ref.png", identity.FullBodyUrl);
+        Assert.Equal("https://cdn.project00.ai/face_ref.png", identity.CanonicalFaceReferenceUrl);
+        Assert.Equal("https://cdn.project00.ai/face_ref.png", identity.CanonicalReferenceUrl); // backward compatibility
+        Assert.Equal("https://cdn.project00.ai/fullbody_ref.png", identity.CanonicalBodyReferenceUrl);
+        Assert.Equal("https://cdn.project00.ai/fullbody_ref.png", identity.FullBodyUrl); // backward compatibility
         Assert.Equal(2, identity.SignatureFeatures?.Count);
         Assert.Equal("curved black and red dragon horns", identity.SignatureFeatures?[0].Name);
+        Assert.Equal(FeatureImportance.High, identity.SignatureFeatures?[0].Importance);
         Assert.Equal(FeaturePersistence.EveryTurn, identity.SignatureFeatures?[0].Persistence);
+        Assert.Equal(FeatureImportance.Contextual, identity.SignatureFeatures?[1].Importance);
+        Assert.Equal(FeaturePersistence.SameSceneOnly, identity.SignatureFeatures?[1].Persistence);
+    }
+
+    [Fact]
+    public void ConfirmedVisualIdentityDto_With_Simple_Strings_Defaults_To_High_Importance_Not_Critical()
+    {
+        var confirmed = new ConfirmedVisualIdentityDto(
+            gender: "Female",
+            signatureFeatures: new List<string> { "freckles" }
+        );
+
+        var identity = confirmed.ToDomainEntity();
+
+        Assert.NotNull(identity.SignatureFeatures);
+        Assert.Single(identity.SignatureFeatures);
+        Assert.Equal("freckles", identity.SignatureFeatures[0].Name);
+        Assert.Equal(FeatureImportance.High, identity.SignatureFeatures[0].Importance);
     }
 
     [Fact]
@@ -189,8 +214,35 @@ public sealed class VisualIdentityExtractorTests
         Assert.Equal("athletic", result.Value.ExtractedIdentity.Body?.Build);
     }
 
+    private sealed class ThrowingExtractor : IVisualIdentityExtractor
+    {
+        public Task<VisualIdentityExtractionResult> ExtractIdentityAsync(byte[] imageBytes, string mimeType, CancellationToken ct = default)
+        {
+            throw new InvalidOperationException("Internal API key quota exceeded sensitive details");
+        }
+    }
+
     [Fact]
-    public async Task GenerateAvatarAsync_With_ReferenceImageUrl_Conditions_Only_Avatar_As_Independent_Job()
+    public async Task ExtractVisualIdentityHandler_Does_Not_Expose_Exception_Message_To_Client()
+    {
+        var storage = new StubStorageService();
+        var extractor = new ThrowingExtractor();
+        var handler = new ExtractVisualIdentityHandler(storage, extractor, NullLogger<ExtractVisualIdentityHandler>.Instance);
+
+        var sampleBytes = new byte[] { 0xFF, 0xD8, 0xFF, 0xE0, 0x01, 0x02 };
+        using var stream = new MemoryStream(sampleBytes);
+        var command = new ExtractVisualIdentityCommand(ImageStream: stream, FileName: "avatar.jpg", ContentType: "image/jpeg");
+
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(500, result.StatusCode);
+        Assert.DoesNotContain("sensitive details", result.Errors[0]);
+        Assert.Equal("Failed to process reference image.", result.Errors[0]);
+    }
+
+    [Fact]
+    public async Task GenerateAvatarAsync_With_ReferenceImageUrl_Uses_IdentityConditioning_Abstraction()
     {
         var imageService = new RecordingImageGenerationService();
 
@@ -218,23 +270,88 @@ public sealed class VisualIdentityExtractorTests
         var response = await llmService.GenerateAvatarAsync(request, CancellationToken.None);
 
         Assert.NotNull(response);
-        // EXACTLY 1 generation request for Avatar (decoupled from Standee!)
         Assert.Single(imageService.RecordedRequests);
 
         var avatarReq = imageService.RecordedRequests[0];
-        Assert.Equal("VisualIdentity", avatarReq.Workflow);
-        Assert.Equal(1, avatarReq.WorkflowVersion);
+        // Must NOT hardcode workflow or IP-Adapter parameters in LLMService!
+        Assert.Null(avatarReq.Workflow);
+        Assert.Null(avatarReq.ParametersJson);
         Assert.Equal("https://cdn.project00.ai/user_uploaded_reference.png", avatarReq.ReferenceImageUrl);
         Assert.Equal(512, avatarReq.Width);
         Assert.Equal(512, avatarReq.Height);
-        Assert.Contains("\"weight\":0.65", avatarReq.ParametersJson!);
+
+        // Uses IdentityConditioning abstraction:
+        Assert.NotNull(avatarReq.IdentityConditioning);
+        Assert.True(avatarReq.IdentityConditioning.IsRequired);
+        Assert.Equal(0.65f, avatarReq.IdentityConditioning.PreservationStrength);
+        Assert.Equal("https://cdn.project00.ai/user_uploaded_reference.png", avatarReq.IdentityConditioning.CanonicalReferenceUrl);
+
+        // Automatically resolves to VisualIdentity v1 via capability resolution:
+        var resolvedCapability = avatarReq.ResolveEffectiveCapability();
+        Assert.Equal("VisualIdentity", resolvedCapability.Workflow);
+        Assert.Equal(1, resolvedCapability.WorkflowVersion);
 
         Assert.Equal("https://cdn.project00.ai/gen_avatar.png", response.AvatarUrl);
         Assert.Null(response.FullBodyUrl); // Decoupled!
     }
 
     [Fact]
-    public async Task GenerateStandeeAsync_Conditions_Standee_Independently()
+    public async Task GenerateStandeeAsync_Prioritizes_OriginalReference_Over_Avatar_For_Body_Evidence()
+    {
+        var imageService = new RecordingImageGenerationService();
+
+        var config = new Microsoft.Extensions.Configuration.ConfigurationBuilder().Build();
+        var httpClient = new System.Net.Http.HttpClient();
+        var geminiClient = new Infrastructure.LLM.Core.GeminiApiClient(
+            httpClient,
+            config,
+            NullLogger<Infrastructure.LLM.Core.GeminiApiClient>.Instance);
+
+        var promptCompiler = new Infrastructure.LLM.Prompts.PromptCompiler();
+        var llmService = new LLMService(
+            geminiClient,
+            imageService,
+            promptCompiler);
+
+        // When BOTH Avatar (face crop) and ReferenceImageUrl (uploaded original with body evidence) are provided:
+        var standeeRequest = new GenerateStandeeRequest(
+            name: "Lyra",
+            title: "Dragon Sovereign",
+            category: "Fantasy",
+            avatarUrl: "https://cdn.project00.ai/gen_avatar_face_crop.png",
+            referenceImageUrl: "https://cdn.project00.ai/user_uploaded_original_reference.png"
+        );
+
+        var response = await llmService.GenerateStandeeAsync(standeeRequest, CancellationToken.None);
+
+        Assert.NotNull(response);
+        Assert.Single(imageService.RecordedRequests);
+
+        var standeeReq = imageService.RecordedRequests[0];
+        // Must NOT hardcode workflow or IP-Adapter parameters:
+        Assert.Null(standeeReq.Workflow);
+        Assert.Null(standeeReq.ParametersJson);
+
+        // MUST prioritize Original Reference over Avatar to avoid identity drift:
+        Assert.Equal("https://cdn.project00.ai/user_uploaded_original_reference.png", standeeReq.ReferenceImageUrl);
+        Assert.Equal(512, standeeReq.Width);
+        Assert.Equal(768, standeeReq.Height);
+
+        // Uses IdentityConditioning abstraction:
+        Assert.NotNull(standeeReq.IdentityConditioning);
+        Assert.True(standeeReq.IdentityConditioning.IsRequired);
+        Assert.Equal(0.45f, standeeReq.IdentityConditioning.PreservationStrength);
+
+        // Automatically resolves to VisualIdentity v1:
+        var resolvedCapability = standeeReq.ResolveEffectiveCapability();
+        Assert.Equal("VisualIdentity", resolvedCapability.Workflow);
+        Assert.Equal(1, resolvedCapability.WorkflowVersion);
+
+        Assert.Equal("https://cdn.project00.ai/gen_fullbody.png", response.StandeeUrl);
+    }
+
+    [Fact]
+    public async Task GenerateStandeeAsync_Prioritizes_Explicit_BodyReference_When_Provided()
     {
         var imageService = new RecordingImageGenerationService();
 
@@ -256,7 +373,8 @@ public sealed class VisualIdentityExtractorTests
             title: "Dragon Sovereign",
             category: "Fantasy",
             avatarUrl: "https://cdn.project00.ai/gen_avatar.png",
-            referenceImageUrl: "https://cdn.project00.ai/user_uploaded_reference.png"
+            referenceImageUrl: "https://cdn.project00.ai/original.png",
+            bodyReferenceUrl: "https://cdn.project00.ai/canonical_body_anchor.png"
         );
 
         var response = await llmService.GenerateStandeeAsync(standeeRequest, CancellationToken.None);
@@ -265,13 +383,41 @@ public sealed class VisualIdentityExtractorTests
         Assert.Single(imageService.RecordedRequests);
 
         var standeeReq = imageService.RecordedRequests[0];
-        Assert.Equal("VisualIdentity", standeeReq.Workflow);
-        Assert.Equal(1, standeeReq.WorkflowVersion);
-        Assert.Equal("https://cdn.project00.ai/gen_avatar.png", standeeReq.ReferenceImageUrl);
-        Assert.Equal(512, standeeReq.Width);
-        Assert.Equal(768, standeeReq.Height);
-        Assert.Contains("\"weight\":0.45", standeeReq.ParametersJson!);
+        Assert.Equal("https://cdn.project00.ai/canonical_body_anchor.png", standeeReq.ReferenceImageUrl);
+    }
 
-        Assert.Equal("https://cdn.project00.ai/gen_fullbody.png", response.StandeeUrl);
+    [Fact]
+    public async Task GenerateStandeeAsync_Falls_Back_To_Avatar_Only_When_No_Other_Reference_Exists()
+    {
+        var imageService = new RecordingImageGenerationService();
+
+        var config = new Microsoft.Extensions.Configuration.ConfigurationBuilder().Build();
+        var httpClient = new System.Net.Http.HttpClient();
+        var geminiClient = new Infrastructure.LLM.Core.GeminiApiClient(
+            httpClient,
+            config,
+            NullLogger<Infrastructure.LLM.Core.GeminiApiClient>.Instance);
+
+        var promptCompiler = new Infrastructure.LLM.Prompts.PromptCompiler();
+        var llmService = new LLMService(
+            geminiClient,
+            imageService,
+            promptCompiler);
+
+        // Only avatar provided:
+        var standeeRequest = new GenerateStandeeRequest(
+            name: "Lyra",
+            title: "Dragon Sovereign",
+            category: "Fantasy",
+            avatarUrl: "https://cdn.project00.ai/gen_avatar.png"
+        );
+
+        var response = await llmService.GenerateStandeeAsync(standeeRequest, CancellationToken.None);
+
+        Assert.NotNull(response);
+        Assert.Single(imageService.RecordedRequests);
+
+        var standeeReq = imageService.RecordedRequests[0];
+        Assert.Equal("https://cdn.project00.ai/gen_avatar.png", standeeReq.ReferenceImageUrl);
     }
 }

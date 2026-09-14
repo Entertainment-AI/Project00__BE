@@ -13,15 +13,43 @@ public sealed record CharacterVisualIdentity(
     string? ClothingStyle = null,
     string? Accessories = null,
     string? VisualTraits = null,
-    string? CanonicalReferenceUrl = null,
-    string? FullBodyUrl = null,
+    string? CanonicalFaceReferenceUrl = null,
+    string? CanonicalBodyReferenceUrl = null,
     string? OriginalReferenceUrl = null,
     GenderPresentation Presentation = GenderPresentation.Unspecified,
     IReadOnlyList<SignatureFeature>? SignatureFeatures = null,
     string? Style = null,
-    VisualStyle VisualStyle = VisualStyle.Unspecified
+    VisualStyle VisualStyle = VisualStyle.Unspecified,
+    string? CanonicalReferenceUrl = null,
+    string? FullBodyUrl = null
 )
 {
+    private readonly string? _canonicalFaceReferenceUrl = CanonicalFaceReferenceUrl ?? CanonicalReferenceUrl;
+    private readonly string? _canonicalBodyReferenceUrl = CanonicalBodyReferenceUrl ?? FullBodyUrl;
+
+    public string? CanonicalFaceReferenceUrl
+    {
+        get => _canonicalFaceReferenceUrl;
+        init => _canonicalFaceReferenceUrl = value;
+    }
+
+    public string? CanonicalBodyReferenceUrl
+    {
+        get => _canonicalBodyReferenceUrl;
+        init => _canonicalBodyReferenceUrl = value;
+    }
+
+    public string? CanonicalReferenceUrl
+    {
+        get => _canonicalFaceReferenceUrl;
+        init => _canonicalFaceReferenceUrl = value;
+    }
+
+    public string? FullBodyUrl
+    {
+        get => _canonicalBodyReferenceUrl;
+        init => _canonicalBodyReferenceUrl = value;
+    }
     public GenderPresentation ResolvedGender
     {
         get
@@ -94,9 +122,11 @@ public sealed record CharacterVisualIdentity(
         Slot2Context context = Slot2Context.ColdStart,
         Slot2ConditioningMode continuityMode = Slot2ConditioningMode.SceneStyleContinuity)
     {
-        var referenceUrl = !string.IsNullOrWhiteSpace(CanonicalReferenceUrl)
-            ? CanonicalReferenceUrl
-            : (!string.IsNullOrWhiteSpace(FullBodyUrl) ? FullBodyUrl : null);
+        var referenceUrl = !string.IsNullOrWhiteSpace(CanonicalFaceReferenceUrl)
+            ? CanonicalFaceReferenceUrl
+            : (!string.IsNullOrWhiteSpace(CanonicalBodyReferenceUrl)
+                ? CanonicalBodyReferenceUrl
+                : (!string.IsNullOrWhiteSpace(OriginalReferenceUrl) ? OriginalReferenceUrl : null));
 
         return IdentityConditioningIntent.FromReferences(
             canonicalReferenceUrl: referenceUrl,

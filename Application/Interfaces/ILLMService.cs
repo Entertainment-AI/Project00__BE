@@ -50,7 +50,7 @@ public interface ILLMService
 
     Task<GenerateStandeeResponse> GenerateStandeeAsync(
         GenerateStandeeRequest request,
-        CancellationToken ct = default) => Task.FromResult(new GenerateStandeeResponse(string.Empty, string.Empty));
+        CancellationToken ct = default);
 
     Task<GenerateAvatarResponse> GenerateSceneImageAsync(
         GenerateSceneImageRequest request,

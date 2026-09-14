@@ -5,6 +5,7 @@ using Application.DTOs;
 using Application.Interfaces;
 using Domain.Entities;
 using Domain.Enums;
+using Domain.ValueObjects;
 using Infrastructure.LLM.Core;
 using Infrastructure.LLM.Prompts;
 using Microsoft.Extensions.Configuration;
@@ -306,38 +307,20 @@ public sealed class LLMService : ILLMService
 
         string avatarUrl;
 
-        if (!string.IsNullOrWhiteSpace(request.ReferenceImageUrl))
-        {
-            // When a visual reference is provided: Generate Close-up Face Avatar conditioned on the Reference Image via VisualIdentity
-            var avatarRequest = new ImageGenerationRequest(
-                Prompt: cleanAvatarPrompt,
-                Width: 512,
-                Height: 512,
-                Seed: generatedSeed,
-                ReferenceImageUrl: request.ReferenceImageUrl,
-                ParametersJson: "{\"ipAdapter\":{\"weight\":0.65,\"endAt\":0.85}}",
-                NegativePrompt: enhancedNegativePrompt,
-                Workflow: "VisualIdentity",
-                WorkflowVersion: 1
-            );
+        var avatarRequest = new ImageGenerationRequest(
+            Prompt: cleanAvatarPrompt,
+            Width: 512,
+            Height: 512,
+            Seed: generatedSeed,
+            ReferenceImageUrl: request.ReferenceImageUrl,
+            IdentityScale: !string.IsNullOrWhiteSpace(request.ReferenceImageUrl) ? 0.65f : null,
+            IdentityConditioning: !string.IsNullOrWhiteSpace(request.ReferenceImageUrl)
+                ? IdentityConditioningIntent.FromReferences(request.ReferenceImageUrl, preservationStrength: 0.65f)
+                : IdentityConditioningIntent.None,
+            NegativePrompt: enhancedNegativePrompt
+        );
 
-            avatarUrl = await _imageService.GenerateImageAsync(avatarRequest, ct);
-        }
-        else
-        {
-            // When no reference is provided: Generate Close-up Face Avatar via TextToImage
-            var avatarRequest = new ImageGenerationRequest(
-                Prompt: cleanAvatarPrompt,
-                Width: 512,
-                Height: 512,
-                Seed: generatedSeed,
-                NegativePrompt: enhancedNegativePrompt,
-                Workflow: "TextToImage",
-                WorkflowVersion: 1
-            );
-
-            avatarUrl = await _imageService.GenerateImageAsync(avatarRequest, ct);
-        }
+        avatarUrl = await _imageService.GenerateImageAsync(avatarRequest, ct);
 
         return new GenerateAvatarResponse(avatarUrl, cleanAvatarPrompt, avatarUrl, null, null);
     }
@@ -346,7 +329,7 @@ public sealed class LLMService : ILLMService
         GenerateStandeeRequest request,
         CancellationToken ct = default)
     {
-        var dualSystemPrompt = CharacterGenerationPrompts.BuildDualImagePrompt(
+        var standeeSystemPrompt = CharacterGenerationPrompts.BuildStandeePrompt(
             request.Name,
             request.Title,
             request.Category,
@@ -359,31 +342,23 @@ public sealed class LLMService : ILLMService
 
         try
         {
-            var rawDualResult = await _geminiClient.GenerateTextAsync(
-                systemPrompt: dualSystemPrompt,
+            var rawResult = await _geminiClient.GenerateTextAsync(
+                systemPrompt: standeeSystemPrompt,
                 contents: new[]
                 {
                     new
                     {
                         role = "user",
-                        parts = new[] { new { text = "Generate the synchronized AVATAR and FULLBODY prompt tags now." } }
+                        parts = new[] { new { text = "Generate the Standee image prompt tags now." } }
                     }
                 },
                 temperature: 0.7,
                 maxOutputTokens: 250,
                 ct: ct);
 
-            if (!string.IsNullOrWhiteSpace(rawDualResult))
+            if (!string.IsNullOrWhiteSpace(rawResult))
             {
-                var lines = rawDualResult.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-                foreach (var line in lines)
-                {
-                    var trimmed = line.Trim();
-                    if (trimmed.StartsWith("FULLBODY:", StringComparison.OrdinalIgnoreCase))
-                    {
-                        cleanFullBodyPrompt = trimmed["FULLBODY:".Length..].Trim();
-                    }
-                }
+                cleanFullBodyPrompt = rawResult.Trim();
             }
         }
         catch
@@ -419,43 +394,34 @@ public sealed class LLMService : ILLMService
         var generatedSeed = Random.Shared.Next(1, int.MaxValue);
         const string enhancedNegativePrompt = "2girls, 2boys, multiple people, group, crowd, duo, couple, 2persons, extra person, deformed horns, bad anatomy, bad hands, missing fingers, extra digits, cropped, watermark, blurry, low quality, mutated, text, error, stiff pose, flat lighting, dull colors, bad face, deformed eyes, crossed eyes";
 
-        // Reference candidate priority: Avatar Face Anchor > Original Reference Image
-        var referenceAnchor = !string.IsNullOrWhiteSpace(request.AvatarUrl)
-            ? request.AvatarUrl
-            : request.ReferenceImageUrl;
+        // Priority for Body Reference:
+        // 1. Explicit Body Reference / CanonicalBodyReferenceUrl (if caller provides explicit body anchor)
+        // 2. Original Reference Image (Ground truth containing full-body/silhouette evidence)
+        // 3. Avatar Face Anchor (fallback only if no body or original reference exists)
+        var referenceAnchor = !string.IsNullOrWhiteSpace(request.BodyReferenceUrl)
+            ? request.BodyReferenceUrl
+            : (!string.IsNullOrWhiteSpace(request.VisualIdentity?.CanonicalBodyReferenceUrl)
+                ? request.VisualIdentity.CanonicalBodyReferenceUrl
+                : (!string.IsNullOrWhiteSpace(request.ReferenceImageUrl)
+                    ? request.ReferenceImageUrl
+                    : (!string.IsNullOrWhiteSpace(request.VisualIdentity?.OriginalReferenceUrl)
+                        ? request.VisualIdentity.OriginalReferenceUrl
+                        : request.AvatarUrl)));
 
-        string fullBodyUrl;
+        var standeeRequest = new ImageGenerationRequest(
+            Prompt: cleanFullBodyPrompt,
+            Width: 512,
+            Height: 768,
+            Seed: generatedSeed,
+            ReferenceImageUrl: referenceAnchor,
+            IdentityScale: !string.IsNullOrWhiteSpace(referenceAnchor) ? 0.45f : null,
+            IdentityConditioning: !string.IsNullOrWhiteSpace(referenceAnchor)
+                ? IdentityConditioningIntent.FromReferences(referenceAnchor, preservationStrength: 0.45f)
+                : IdentityConditioningIntent.None,
+            NegativePrompt: enhancedNegativePrompt
+        );
 
-        if (!string.IsNullOrWhiteSpace(referenceAnchor))
-        {
-            var fullBodyRequest = new ImageGenerationRequest(
-                Prompt: cleanFullBodyPrompt,
-                Width: 512,
-                Height: 768,
-                Seed: generatedSeed,
-                ReferenceImageUrl: referenceAnchor,
-                ParametersJson: "{\"ipAdapter\":{\"weight\":0.45,\"endAt\":0.65}}",
-                NegativePrompt: enhancedNegativePrompt,
-                Workflow: "VisualIdentity",
-                WorkflowVersion: 1
-            );
-
-            fullBodyUrl = await _imageService.GenerateImageAsync(fullBodyRequest, ct);
-        }
-        else
-        {
-            var fullBodyRequest = new ImageGenerationRequest(
-                Prompt: cleanFullBodyPrompt,
-                Width: 512,
-                Height: 768,
-                Seed: generatedSeed,
-                NegativePrompt: enhancedNegativePrompt,
-                Workflow: "TextToImage",
-                WorkflowVersion: 1
-            );
-
-            fullBodyUrl = await _imageService.GenerateImageAsync(fullBodyRequest, ct);
-        }
+        var fullBodyUrl = await _imageService.GenerateImageAsync(standeeRequest, ct);
 
         return new GenerateStandeeResponse(fullBodyUrl, cleanFullBodyPrompt, fullBodyUrl);
     }

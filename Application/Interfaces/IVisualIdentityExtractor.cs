@@ -3,7 +3,7 @@ using Application.DTOs;
 namespace Application.Interfaces;
 
 /// <summary>
-/// Provider-agnostic contract for extracting structured, zero-hallucination visual identity invariants from a visual reference.
+/// Provider-agnostic contract for extracting structured, evidence-bound visual identity observations from a visual reference.
 /// </summary>
 public interface IVisualIdentityExtractor
 {

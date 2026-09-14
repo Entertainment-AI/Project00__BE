@@ -101,7 +101,7 @@ public sealed class CharactersController : ControllerBase
     }
 
     /// <summary>
-    /// Extracts structured visual identity traits from an uploaded reference photo (zero-hallucination)
+    /// Extracts structured visual identity traits from an uploaded reference photo (evidence-bound)
     /// </summary>
     [HttpPost("extract-identity")]
     public async Task<IActionResult> ExtractVisualIdentity(

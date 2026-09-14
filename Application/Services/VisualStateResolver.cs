@@ -142,7 +142,34 @@ public sealed class VisualStateResolver : IVisualStateResolver
             var specRepo = _unitOfWork.GetRepository<SceneSpecification>();
             await specRepo.AddAsync(pipelineResult.SceneSpecification, ct);
 
-            return (updatedSceneState, transientState, pipelineResult.VisualSnapshot);
+            var snapshot = pipelineResult.VisualSnapshot;
+            if (string.IsNullOrWhiteSpace(snapshot.PreviousSceneImageUrl) && targetRevision > 1)
+            {
+                try
+                {
+                    var sceneImageRepo = _unitOfWork.GetRepository<SceneImage>();
+                    var lastCommittedImage = await sceneImageRepo.GetAsync(
+                        img => img.SessionId == session.Id && img.SceneRevision == targetRevision - 1 && img.IsCurrent,
+                        ct);
+                    if (lastCommittedImage != null)
+                    {
+                        snapshot = snapshot with
+                        {
+                            PreviousSceneImageUrl = lastCommittedImage.ImageUrl,
+                            PredecessorSceneImageId = lastCommittedImage.Id,
+                            IdentityConditioning = snapshot.IdentityConditioning != null
+                                ? snapshot.IdentityConditioning with { PreviousSceneReferenceUrl = lastCommittedImage.ImageUrl }
+                                : snapshot.IdentityConditioning
+                        };
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to resolve predecessor scene image for Revision {Rev} during turn commit.", targetRevision - 1);
+                }
+            }
+
+            return (updatedSceneState, transientState, snapshot);
         }
         catch (SceneCompositionException)
         {
