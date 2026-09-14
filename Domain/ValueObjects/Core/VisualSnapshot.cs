@@ -50,13 +50,13 @@ public sealed record VisualSnapshot(
     {
         ArgumentNullException.ThrowIfNull(generationProfile, nameof(generationProfile));
 
-        // Strict resolution hierarchy: CanonicalReferenceUrl (tight face crop) -> Character AvatarUrl -> FullBodyUrl
-        var resolvedIdentityRef = !string.IsNullOrWhiteSpace(visualIdentity?.CanonicalReferenceUrl)
-            ? visualIdentity.CanonicalReferenceUrl
+        // Strict resolution hierarchy: CanonicalFaceReferenceUrl (tight face crop) -> Character AvatarUrl -> CanonicalBodyReferenceUrl
+        var resolvedIdentityRef = !string.IsNullOrWhiteSpace(visualIdentity?.CanonicalFaceReferenceUrl)
+            ? visualIdentity.CanonicalFaceReferenceUrl
             : (!string.IsNullOrWhiteSpace(fallbackReferenceUrl)
                 ? fallbackReferenceUrl
-                : (!string.IsNullOrWhiteSpace(visualIdentity?.FullBodyUrl)
-                    ? visualIdentity.FullBodyUrl
+                : (!string.IsNullOrWhiteSpace(visualIdentity?.CanonicalBodyReferenceUrl)
+                    ? visualIdentity.CanonicalBodyReferenceUrl
                     : null));
 
         var defaultNegatives = negativeConstraints 

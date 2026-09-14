@@ -149,7 +149,7 @@ public sealed class VisualPredecessorResolver : IVisualPredecessorResolver
         }
 
         // 3. Tier 3: Character Canonical Reference
-        var canonicalRef = snapshot.IdentityReferenceUrl ?? snapshot.VisualIdentity?.CanonicalReferenceUrl;
+        var canonicalRef = snapshot.IdentityReferenceUrl ?? snapshot.VisualIdentity?.CanonicalFaceReferenceUrl;
         if (!string.IsNullOrWhiteSpace(canonicalRef))
         {
             _logger.LogInformation("[VisualPredecessorResolver] Resolved character canonical reference predecessor for Session {SessionId}", sessionId);

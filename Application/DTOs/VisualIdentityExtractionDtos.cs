@@ -65,14 +65,13 @@ public sealed record ConfirmedVisualIdentityDto(
     string? CanonicalFaceReferenceUrl = null,
     string? CanonicalBodyReferenceUrl = null,
     List<ConfirmedSignatureFeatureDto>? SignatureFeatures = null,
-    string? Style = null,
-    string? CanonicalReferenceUrl = null,
-    string? FullBodyUrl = null
+    string? Style = null
 )
 {
-    public string? CanonicalFaceReferenceUrl { get; init; } = CanonicalFaceReferenceUrl ?? CanonicalReferenceUrl;
-    public string? CanonicalBodyReferenceUrl { get; init; } = CanonicalBodyReferenceUrl ?? FullBodyUrl;
+    [Obsolete("Use CanonicalFaceReferenceUrl instead.")]
     public string? CanonicalReferenceUrl => CanonicalFaceReferenceUrl;
+
+    [Obsolete("Use CanonicalBodyReferenceUrl instead.")]
     public string? FullBodyUrl => CanonicalBodyReferenceUrl;
 
     public ConfirmedVisualIdentityDto(

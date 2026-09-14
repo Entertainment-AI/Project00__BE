@@ -69,7 +69,7 @@ public class VisualContinuity8TurnBenchmarkTests
                     Skin: "Fair skin",
                     Body: "Slender athletic build",
                     ClothingStyle: "White Dress",
-                    CanonicalReferenceUrl: canonicalIdentityUrl,
+                    CanonicalFaceReferenceUrl: canonicalIdentityUrl,
                     VisualStyle: VisualStyle.Anime
                 )
             ) { Id = charId };
@@ -274,7 +274,7 @@ public class VisualContinuity8TurnBenchmarkTests
                 Hair: "White",
                 Eyes: "Red",
                 ClothingStyle: "Silk dress",
-                CanonicalReferenceUrl: "https://cloud.storage/lyra_canonical.png",
+                CanonicalFaceReferenceUrl: "https://cloud.storage/lyra_canonical.png",
                 VisualStyle: VisualStyle.Anime
             )
         );
@@ -356,7 +356,7 @@ public class VisualContinuity8TurnBenchmarkTests
             personalityPrompt: "Calm",
             greeting: "Greetings",
             category: "Anime",
-            visualIdentity: new CharacterVisualIdentity(Gender: "Female", AgeAppearance: "19", Hair: "White", Eyes: "Red", ClothingStyle: "Dress", CanonicalReferenceUrl: "https://cloud.storage/lyra_canonical.png", VisualStyle: VisualStyle.Anime)
+            visualIdentity: new CharacterVisualIdentity(Gender: "Female", AgeAppearance: "19", Hair: "White", Eyes: "Red", ClothingStyle: "Dress", CanonicalFaceReferenceUrl: "https://cloud.storage/lyra_canonical.png", VisualStyle: VisualStyle.Anime)
         );
         var session = new ChatSession(characterId, Guid.NewGuid(), "Roleplay");
         typeof(Domain.Common.BaseEntity).GetProperty("Id")!.SetValue(session, sessionId);
@@ -417,7 +417,7 @@ public class VisualContinuity8TurnBenchmarkTests
             personalityPrompt: "Calm",
             greeting: "Greetings",
             category: "Anime",
-            visualIdentity: new CharacterVisualIdentity(Gender: "Female", AgeAppearance: "19", Hair: "White", Eyes: "Red", ClothingStyle: "Dress", CanonicalReferenceUrl: "https://cloud.storage/lyra_canonical.png", VisualStyle: VisualStyle.Anime)
+            visualIdentity: new CharacterVisualIdentity(Gender: "Female", AgeAppearance: "19", Hair: "White", Eyes: "Red", ClothingStyle: "Dress", CanonicalFaceReferenceUrl: "https://cloud.storage/lyra_canonical.png", VisualStyle: VisualStyle.Anime)
         );
 
         // Turn 1 Committed Artifact Image 1

@@ -43,7 +43,7 @@ public sealed class ExecutionEngineDecouplingTests
             SceneRevision: 1,
             VisualIdentity: new CharacterVisualIdentity(
                 Face: "short raven hair, amber eyes",
-                CanonicalReferenceUrl: "https://cdn.project00.ai/canonical_alice.png"),
+                CanonicalFaceReferenceUrl: "https://cdn.project00.ai/canonical_alice.png"),
             SceneState: new SessionSceneState(
                 CurrentLocation: "Cyberpunk Alley",
                 CurrentOutfit: "Leather Trench Coat",
@@ -640,6 +640,7 @@ public sealed class ExecutionEngineDecouplingTests
             => Task.FromResult($"https://cdn.project00.ai/rendered/{fileName}");
 
         public Task<bool> DeleteFileAsync(string fileUrl, CancellationToken ct = default) => Task.FromResult(true);
+        public Task<byte[]?> ReadImageBytesAsync(string fileUrl, CancellationToken ct = default) => Task.FromResult<byte[]?>(null);
     }
 
     private sealed class MockInputImageService : IComfyUIInputImageService

@@ -19,6 +19,9 @@ public sealed class ComfyUIImageGenerationIntegrationTests
 
         public Task<bool> DeleteFileAsync(string fileUrl, CancellationToken ct = default)
             => Task.FromResult(true);
+
+        public Task<byte[]?> ReadImageBytesAsync(string fileUrl, CancellationToken ct = default)
+            => Task.FromResult<byte[]?>(null);
     }
 
     [Fact]

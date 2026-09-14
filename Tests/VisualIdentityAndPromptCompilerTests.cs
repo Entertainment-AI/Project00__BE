@@ -23,7 +23,7 @@ public class VisualIdentityAndPromptCompilerTests
             ClothingStyle: "starry gothic witch robes with silver embroidery",
             Accessories: "silver crescent moon hairpin, crystal pendant",
             VisualTraits: "faint starlight aura around fingertips",
-            CanonicalReferenceUrl: "https://example.com/luna_canonical.jpg"
+            CanonicalFaceReferenceUrl: "https://example.com/luna_canonical.jpg"
         );
 
         var character = new Character("Luna", "Mage", "https://example.com/avatar.jpg", "Friendly", "Hello", "Fantasy", visualIdentity: visualIdentity)

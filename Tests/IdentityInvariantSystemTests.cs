@@ -382,7 +382,7 @@ public sealed class IdentityInvariantSystemTests
         );
 
         var visualIdentity = new CharacterVisualIdentity(
-            CanonicalReferenceUrl: canonicalAvatarUrl,
+            CanonicalFaceReferenceUrl: canonicalAvatarUrl,
             Presentation: GenderPresentation.Male,
             Hair: "black hair",
             Eyes: "amber eyes",
@@ -488,7 +488,7 @@ public sealed class IdentityInvariantSystemTests
         );
 
         var identity = new CharacterVisualIdentity(
-            CanonicalReferenceUrl: canonicalAvatar,
+            CanonicalFaceReferenceUrl: canonicalAvatar,
             Presentation: GenderPresentation.Male,
             Hair: "short black hair",
             Eyes: "golden amber eyes",

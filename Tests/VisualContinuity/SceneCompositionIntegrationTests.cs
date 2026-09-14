@@ -115,7 +115,7 @@ public sealed class SceneCompositionIntegrationTests : IDisposable
             Eyes: "Deep Violet",
             Skin: "Porcelain",
             ClothingStyle: "Emerald Academic Robes",
-            CanonicalReferenceUrl: canonicalRef.ReferenceUrl,
+            CanonicalFaceReferenceUrl: canonicalRef.ReferenceUrl,
             VisualStyle: VisualStyle.Anime
         ));
 

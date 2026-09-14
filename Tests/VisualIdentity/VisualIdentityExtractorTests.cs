@@ -27,6 +27,11 @@ public sealed class VisualIdentityExtractorTests
         {
             return Task.FromResult(true);
         }
+
+        public Task<byte[]?> ReadImageBytesAsync(string fileUrl, CancellationToken ct = default)
+        {
+            return Task.FromResult<byte[]?>(new byte[] { 0xFF, 0xD8, 0xFF, 0xE0, 0x01, 0x02 });
+        }
     }
 
     private sealed class StubExtractor : IVisualIdentityExtractor

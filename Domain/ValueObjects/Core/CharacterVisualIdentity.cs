@@ -19,37 +19,20 @@ public sealed record CharacterVisualIdentity(
     GenderPresentation Presentation = GenderPresentation.Unspecified,
     IReadOnlyList<SignatureFeature>? SignatureFeatures = null,
     string? Style = null,
-    VisualStyle VisualStyle = VisualStyle.Unspecified,
-    string? CanonicalReferenceUrl = null,
-    string? FullBodyUrl = null
+    VisualStyle VisualStyle = VisualStyle.Unspecified
 )
 {
-    private readonly string? _canonicalFaceReferenceUrl = CanonicalFaceReferenceUrl ?? CanonicalReferenceUrl;
-    private readonly string? _canonicalBodyReferenceUrl = CanonicalBodyReferenceUrl ?? FullBodyUrl;
+    /// <summary>
+    /// Backward-compatible alias for CanonicalFaceReferenceUrl.
+    /// </summary>
+    [Obsolete("Use CanonicalFaceReferenceUrl instead.")]
+    public string? CanonicalReferenceUrl => CanonicalFaceReferenceUrl;
 
-    public string? CanonicalFaceReferenceUrl
-    {
-        get => _canonicalFaceReferenceUrl;
-        init => _canonicalFaceReferenceUrl = value;
-    }
-
-    public string? CanonicalBodyReferenceUrl
-    {
-        get => _canonicalBodyReferenceUrl;
-        init => _canonicalBodyReferenceUrl = value;
-    }
-
-    public string? CanonicalReferenceUrl
-    {
-        get => _canonicalFaceReferenceUrl;
-        init => _canonicalFaceReferenceUrl = value;
-    }
-
-    public string? FullBodyUrl
-    {
-        get => _canonicalBodyReferenceUrl;
-        init => _canonicalBodyReferenceUrl = value;
-    }
+    /// <summary>
+    /// Backward-compatible alias for CanonicalBodyReferenceUrl.
+    /// </summary>
+    [Obsolete("Use CanonicalBodyReferenceUrl instead.")]
+    public string? FullBodyUrl => CanonicalBodyReferenceUrl;
     public GenderPresentation ResolvedGender
     {
         get

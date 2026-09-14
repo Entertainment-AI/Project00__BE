@@ -1,4 +1,4 @@
-﻿using Application.DTOs;
+using Application.DTOs;
 using Application.Enums;
 using Application.Exceptions;
 using Application.Interfaces;
@@ -40,7 +40,7 @@ public sealed class GenerationReliabilityFaultInjectionMatrixTests
             SessionId: Guid.NewGuid(),
             CharacterId: Guid.NewGuid(),
             SceneRevision: 1,
-            VisualIdentity: new CharacterVisualIdentity(Face: "canonical_face", CanonicalReferenceUrl: "https://cdn.project00.ai/face.png"),
+            VisualIdentity: new CharacterVisualIdentity(Face: "canonical_face", CanonicalFaceReferenceUrl: "https://cdn.project00.ai/face.png"),
             SceneState: new SessionSceneState("active scene", "neutral"),
             TransientState: null,
             GenerationProfile: GenerationProfile.CreateDefault("meinamix_meinaV11.safetensors")

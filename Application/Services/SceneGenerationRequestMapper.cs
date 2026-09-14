@@ -86,8 +86,8 @@ public sealed class SceneGenerationRequestMapper
                 Face: sourceIdentity?.Face,
                 Body: sourceIdentity?.Body,
                 Accessories: sourceIdentity?.Accessories,
-                CanonicalReferenceUrl: visualContext.CanonicalIdentityReference?.ReferenceUrl ?? sourceIdentity?.CanonicalReferenceUrl,
-                FullBodyUrl: sourceIdentity?.FullBodyUrl,
+                CanonicalFaceReferenceUrl: visualContext.CanonicalIdentityReference?.ReferenceUrl ?? sourceIdentity?.CanonicalFaceReferenceUrl,
+                CanonicalBodyReferenceUrl: sourceIdentity?.CanonicalBodyReferenceUrl,
                 Gender: sourceIdentity?.Gender,
                 Style: effectiveStyle,
                 VisualStyle: effectiveVisualStyle
@@ -98,7 +98,7 @@ public sealed class SceneGenerationRequestMapper
             identity = sourceIdentity with
             {
                 ClothingStyle = scene.OutfitContext ?? sourceIdentity.ClothingStyle,
-                CanonicalReferenceUrl = visualContext.CanonicalIdentityReference?.ReferenceUrl ?? sourceIdentity.CanonicalReferenceUrl,
+                CanonicalFaceReferenceUrl = visualContext.CanonicalIdentityReference?.ReferenceUrl ?? sourceIdentity.CanonicalFaceReferenceUrl,
                 Style = effectiveStyle,
                 VisualStyle = effectiveVisualStyle
             };
@@ -107,7 +107,7 @@ public sealed class SceneGenerationRequestMapper
         {
             identity = new CharacterVisualIdentity(
                 ClothingStyle: scene.OutfitContext,
-                CanonicalReferenceUrl: visualContext.CanonicalIdentityReference?.ReferenceUrl,
+                CanonicalFaceReferenceUrl: visualContext.CanonicalIdentityReference?.ReferenceUrl,
                 Style: effectiveStyle,
                 VisualStyle: effectiveVisualStyle
             );
